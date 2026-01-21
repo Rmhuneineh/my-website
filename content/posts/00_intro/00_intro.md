@@ -19,4 +19,4 @@ Please note that I will try my best to backup my thoughts and ideas with referen
 
 This is why I urge the kind reader to reach out in case corection is requried, to discuss a topic further, or simply to connect!
 
-I hope you enjoy it =)
+I hope you enjoy it :D
