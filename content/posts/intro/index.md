@@ -7,7 +7,7 @@ draft: false
 # Welcome To My Website
 Hello and welcome to my website.
 
-I will attempt to share my thoughts to the interested reader using blog posts. Topics will vary in discipline but mainly I would like to portray my perspective on the following:
+I will attempt to share my thoughts with the interested reader using blog posts. Topics will vary in discipline but mainly I would like to portray my perspective on the following:
 + **Mechanical Engineering**
 + **Programming Tutorial for Engineers**
 + **Books and Recommendations**
