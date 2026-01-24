@@ -1,4 +1,4 @@
-baseURL = 'http://ragheedhuneineh.com/'
+baseURL = 'https://ragheedhuneineh.com/'
 languageCode = 'en-us'
 languageName = "English"
 
@@ -637,7 +637,7 @@ thumbnailUrl = ""
 enable = true
 # Google Analytics
 [params.analytics.google]
-id = "G-JKG8HGHF8S"
+id = ""
 # whether to anonymize IP
 # 是否匿名化用户 IP
 anonymizeIP = true
