@@ -18,22 +18,22 @@ link = "https://ragheedhuneineh.com/"
 weight = 1
 identifier = "about"
 # you can add extra information before the name (HTML format is supported), such as icons
-#pre = '<i class="fa-solid fa-address-card"></i>'
+#pre = '<i class="fa-solid fa-address-card"></i> '
 # you can add extra information after the name (HTML format is supported), such as icons
-post = ""
-name = "About |"
+post = " |"
+name = "About"
 url = "/about/"
 # title will be shown when you hover on this menu link
 title = ""
 
 [[menu.main]]
 weight = 2
-#pre = '<i class="fa-solid fa-pepper-hot"></i>'
+#pre = '<i class="fa-solid fa-pepper-hot"></i> '
 identifier = "portfolio"
 # you can add extra information before the name (HTML format is supported), such as icons
 # you can add extra information after the name (HTML format is supported), such as icons
-post = ""
-name = "Portfolio |"
+post = " |"
+name = "Portfolio"
 url = "/portfolio/"
 # title will be shown when you hover on this menu link
 title = ""
@@ -41,19 +41,19 @@ title = ""
 
 [[menu.main]]
 weight = 3
-#pre = '<i class="fa-solid fa-candy-cane"></i>'
+#pre = '<i class="fa-solid fa-candy-cane"></i> '
 identifier = "Posts"
 # you can add extra information before the name (HTML format is supported), such as icons
 # you can add extra information after the name (HTML format is supported), such as icons
-post = ""
-name = "Posts |"
+post = " |"
+name = "Posts"
 url = "/posts/"
 # title will be shown when you hover on this menu link
 title = ""
 
 [[menu.main]]
 weight = 4
-#pre = '<i class="fa-solid fa-candy-cane"></i>'
+#pre = '<i class="fa-solid fa-candy-cane"></i> '
 identifier = "resume"
 name = "Resume"
 url = "/resume_ragheed_huneineh.pdf"
@@ -145,7 +145,7 @@ copyright = false
 author = false
 # site creation time
 # 网站创立年份
-since = 2022
+since = 2026
 # ICP info only in China (HTML format is supported)
 # ICP 备案信息，仅在中国使用 (支持 HTML 格式)
 icp = ""
@@ -261,7 +261,7 @@ typeit = true
 social = true
 # disclaimer (HTML format is supported)
 # 免责声明 (支持 HTML 格式)
-disclaimer = ""
+disclaimer = "Personal portfolio and blog"
 # Home page posts
 # 主页文章列表
 [params.home.posts]
@@ -448,7 +448,7 @@ enable = true
 Twitter = true
 Facebook = true
 Linkedin = true
-Whatsapp = false
+Whatsapp = true
 Pinterest = false
 Tumblr = false
 HackerNews = false
