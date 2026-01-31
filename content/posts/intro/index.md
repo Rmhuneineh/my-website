@@ -1,7 +1,14 @@
 ---
 title: "Intro"
 date: 2026-01-21T18:36:20
+author: "Ragheed"
+excerpt: ""
+description: "Welcome To My Website"
 draft: false
+math: true
+toc: false
+categories: []
+tags: []
 ---
 
 # Welcome To My Website
