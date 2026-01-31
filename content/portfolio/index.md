@@ -1,15 +1,14 @@
 ---
 title: "Portfolio"
 date: 2026-01-10T21:24:13+02:00
-draft: false
+author: "Ragheed"
+excerpt: ""
 description: "Portfolio"
-
-lightgallery: true
-
-math:
-  enable: true
-toc:
-  auto: false
+draft: false
+math: true
+toc: true
+categories: []
+tags: []
 ---
 
 # Portfolio
