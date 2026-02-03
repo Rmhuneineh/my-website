@@ -9,6 +9,7 @@ math: true
 toc: true
 categories: ["Mechanical Engineering", "Programming Tutorial"]
 tags: ["Machine Design"]
+enableEmoji: true
 ---
 
 ## Outline
@@ -70,7 +71,7 @@ RF = np.array([i, j, k])
 ```
 Make sure to press **Shift+Enter** to run the code in the block.
 
-The unit vectors **i**, **'j'**, and **'k'**, correspond to the **'x'**, **'y'**, and **'z'** axes, respectively. You can think of **RF** as the reference frame holding the three unit vectors together.
+The unit vectors **'i'**, **'j'**, and **'k'**, correspond to the **'x'**, **'y'**, and **'z'** axes, respectively. You can think of **'RF'** as the reference frame holding the three unit vectors together.
 
 To proceed with our project, we must first understand the characteristics of its underlying components. Therefore, in the next section, we will check how to define the necessary objects one by one.
 
@@ -93,7 +94,7 @@ A simplified scheme can be seen in [**Figure 2**](#figure-2). In this scheme, we
 3) output load (forces and torque)
 4) gear tooth inclination
 
-with the respect to the given reference frame.
+with respect to the given reference frame.
 
 <figure id="figure-2">
     <img src="figure2_gearbox_scheme.png" alt="Gearbox Scheme">
@@ -275,7 +276,9 @@ R1R4_material = pgt.Material(name='Steel', sigma_u=1060, sigma_y=950, HB=335)
 R2R3_material = pgt.Material(name='Steel', sigma_u=1950, sigma_y=1400, HB=560)
 ```
 
-At this point, the object **R1R4_material** holds material properties for gears **R1** and **R4**, while **R2R3_material** holds material properties for gears **R2** and **R3**. These material objects will be used during the defintion of the gear objects as follows:
+At this point, the object **R1R4_material** holds material properties for gears **R1** and **R4**, while **R2R3_material** holds material properties for gears **R2** and **R3**. These material objects will be used during the defintion of the gear objects as follows.
+
+***NOTE: DO NO RUN THE FOLLOWING CODE BLOCK JUST YET. THERE'S ONE MORE PARAMETER THAT WILL BE DISCUSSED SHORTLY.***
 
 ```python
 # Gears
@@ -292,11 +295,11 @@ R4 = pgt.Gear(name="R4", axis=k, m_n=2.5, z=51, psi=20, phi_n=20, Q_v=7, FW=30, 
 At this point, each gear object has a label, axis of rotation, normal module, number of teeth, helix angle, normal pressure angle, transmission accuracy level, tooth face width, and material properties defined.
 
 ### Bearings
-Defining bearing objects isn't as straightforward as the previous definitions unfortunately. This is because bearings come with different types, each type with its own set of properties. However, some of these properties are shared within different types of bearings *(e.g. bearing width, internal diameter, reference speed, etc.)*. **PyGRITbx** supports only SKF bearings, and luckily, the [SKF Rolling Bearings](https://www.skf.com/group/products/rolling-bearings "SKF Roller Bearigns Catalogue") catalogue is freely available for anyone to download.
+Defining bearing objects isn't as straightforward as the previous definitions unfortunately. This is because bearings come in different types, each type with its own set of properties. However, some of these properties are shared across different types of bearings *(e.g. bearing width, internal diameter, reference speed, etc.)*. **PyGRITbx** supports only SKF bearings, and luckily, the [**SKF Rolling Bearings**](https://www.skf.com/group/products/rolling-bearings "SKF Roller Bearigns Catalogue") catalogue is freely available for anyone to download.
 
 Using the catalogue, we will define bearing objects by their properties. Some additional properties related to the specific configuration of the gearbox will also be defined and explained in the following.
 
-Bearings **A** and **B** are given as **SKF 30203 (Explorer)** bearings. By searching through the **SKF Catalogue**, we find their characteristics as shown in [Figure 3](#figure-3) and [Figure 4](#figure-4), in the row enclosed in the blue rectangle. 
+Bearings **A** and **B** are given as **SKF 30203 (Explorer)** bearings. By searching through the **SKF Catalogue**, we find their characteristics as shown in [**Figure 3**](#figure-3) and [**Figure 4**](#figure-4), in the row enclosed in the blue rectangle. 
 
 <figure id="figure-3">
     <img src="figure3_30203_1.png" alt="SKF 30203 (Explorer) Specs 1">
@@ -308,15 +311,66 @@ Bearings **A** and **B** are given as **SKF 30203 (Explorer)** bearings. By sear
     <figcaption>Figure 4 - SKF 30203 (Explorer) Specs 2</figcaption>
 </figure>
 
-Similarly, we can find bearings **C** and **D** which are designated by **SKF 30208 (Explorer)**. Their characteristics are shown in [Figure 5](#figure-5) and [Figure 6](#figure-6) in the row enclosed in the blue rectangle.
+Similarly, we can find bearings **C** and **D** which are designated by **SKF 30208 (Explorer)**. Their characteristics are shown in [**Figure 5**](#figure-5) and [**Figure 6**](#figure-6) in the row enclosed in the blue rectangle.
 
 <figure id="figure-5">
     <img src="figure5_30208_1.png" alt="SKF 30208 (Explorer) Specs 1">
-    <figcaption>Figure 3 - SKF 30208 (Explorer) Specs 1</figcaption>
+    <figcaption>Figure 5 - SKF 30208 (Explorer) Specs 1</figcaption>
 </figure>
 
 <figure id="figure-6">
     <img src="figure6_30208_2.png" alt="SKF 30208 (Explorer) Specs 2">
-    <figcaption>Figure 4 - SKF 30208 (Explorer) Specs 2</figcaption>
+    <figcaption>Figure 6 - SKF 30208 (Explorer) Specs 2</figcaption>
 </figure>
 
+Based on the information from the catalogue, we can then define the bearing objects in python as follows.
+
+***NOTE: DO NO RUN THE FOLLOWING CODE BLOCK JUST YET. THERE'S ONE MORE PARAMETER THAT WILL BE DISCUSSED SHORTLY.***
+
+```python
+# Supports
+# A (roller 30203)
+A = pgt.Support(name="A", type="Roller", bearingType="Tapered", catalogueName="30203", 
+                catalogueType="Explorer", d=17, D=40, B=13.25, C=23.4e3, C0=18.6e3, Pu=1.83e3, 
+                nr=15e3, a=9, e=0.35, X=0, Y=1.7, Y0=0.9, Y1=0, Y2=0, A=0, kr=0, shoulder=-1, 
+                arr="B2B", axis=k)
+
+# B (roller 30203)
+B = pgt.Support(name="B", type="Pin", bearingType="Tapered", catalogueName="30203", 
+                catalogueType="Explorer", d=17, D=40, B=13.25, C=23.4e3, C0=18.6e3, Pu=1.83e3, 
+                nr=15e3, a=9, e=0.35, X=0, Y=1.7,Y0=0.9, Y1=0, Y2=0, A=0, kr=0, shoulder=1,
+                arr="B2B", axis=k)
+
+# C (roller 30208)
+C = pgt.Support(name="C", type="Roller", bearingType="Tapered", catalogueName="30208", 
+                catalogueType="Explorer", d=40, D=80, B=19.75, C=75.8e3, C0=68e3, Pu=7.65e3, 
+                nr=7e3, a=16, e=0.37, X=0, Y=1.6, Y0=0.9, Y1=0, Y2=0, A=0, kr=0, shoulder=-1, 
+                arr="B2B", axis=k)
+
+# D (roller 30208)
+D = pgt.Support(name="D", type="Pin", bearingType="Tapered", catalogueName="30208", 
+                catalogueType="Explorer", d=40, D=80, B=19.75, C=75.8e3, C0=68e3, Pu=7.65e3, 
+                nr=7e3, a=16, e=0.37, X=0, Y=1.6, Y0=0.9, Y1=0, Y2=0, A=0, kr=0, shoulder=1, 
+                arr="B2B", axis=k)
+
+# F
+F = pgt.Support(axis=k)
+```
+It's worth spending a couple of words regarding the properties defined which are *NOT* present in the SKF Catalogue:
+1) **name**: this is simply a label that you are free to choose or simply leave empty.
+2) **type**: this can be either **Roller** or **Pin**, depending on the support type. Each shaft is supported by at least 2 supports and it's **necessary** to define one of the supports as **Roller** and the other as **Pin**. Sometimes this is given in the scheme in [**Figure 2**](#figure-2). In this specific example and by looking at shaft **A1**, we can see that both bearings, **A** and **B**, are **Pins**; therefore, how do we choose which to define as **Roller** and which as **Pin**? The answer: *it doesn't matter*. This is because the SKF catalogue provides a way to calculate the axial forces as shown in [**Figure 7**](#figure-7). But don't worry, **PyGRITbx** will do this calculation for you.
+3) **bearingType**: depending on the bearing type, this could be **Ball**, **Tapered**, or **Contact Ball** bearing.
+4) **catalogueType**: based on the SKF Catalogue, the bearing could be a **Standard** or **Explorer** bearing.
+5) **shoulder**: this parameter is set to **1** if the axial shoulder is located in the positive sense of the shaft's axis with respect to the bearing and **-1** otherwise. Example: if the shaft's axis is pointing to the right and the shoulder is to the right of the bearing, the parameter must be set to **1**. If the shaft's axsi is pointing to the right and the should is to the left of the bearing, the parameter must be set to **-1**.
+6) **arr**: this is the arrangement the bearing is currently in. It could be **Single**, **F2F**, **B2B**, **Tandem**, or **Double row**, depending on the given arrangement.
+7) **axis**: the unit vector corresponding to the axis around which the bearing rotates.
+
+
+<figure id="figure-7">
+    <img src="figure7_bearing_axial_loading.png" alt="Bearings Axial Loading">
+    <figcaption>Figure 7 - Bearings Axial Loading</figcaption>
+</figure>
+
+At this stage, one might think that we should move on to defining **shafts** and **meshes**. However, there's a specific reason as to why I asked you not to run the code blocks regarding gears and bearings. The reason is that with our current definition, the components will be simply floating in the air without any specific location! Therefore, the next section will be dedicated to explaining how to find the locations of the components and how to define them.
+
+### Components' Locations
