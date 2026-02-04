@@ -9,7 +9,6 @@ math: true
 toc: true
 categories: ["Mechanical Engineering", "Programming Tutorial"]
 tags: ["Machine Design"]
-enableEmoji: true
 ---
 
 ## Outline
