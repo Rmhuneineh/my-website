@@ -864,3 +864,8 @@ print(D.F_tot.force)
 # output
 # [ 1368.98319344 -5247.4713804   2130.83481793]
 ```
+
+## Final Words
+If you've made it to this point, then you survived my attempt to portray my experience in explaining this exercise that I had taught for several years. Congratulations, mastering this part will help you save time solving this project.
+
+For the next part, we will perform the static and fatigue verification on shaft **A2**. So stay tuned =)
