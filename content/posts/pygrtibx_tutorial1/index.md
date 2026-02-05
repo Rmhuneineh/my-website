@@ -619,20 +619,12 @@ output = pgt.Component(name="Output", axis=k, loc=zOut)
 In this section, we will define our last components. **Shafts** and **Meshes** are special components in **PyGRITbx** because they allow us to define how all the other *regular* components interact with each other. Moreover, the toolbox calculates the absolute locations of all components (if not already defined) using these special components. So without waiting further, let's start defining these special components.
 
 **- Shaft A1**
-I think by now, you got a hint of how the toolbox works: if you want to define a certain component, let's say a shaft, then you'd need to type something like ```pgt.Shaft(...)``` and identify its characteristics in the parantheses. You wouldn't be wrong to think that, and for shaft **A1**; however, we'd only need to define the shaft's material beforehand similar to how we defined that of the gears:
 
-```python
-shaftMaterial = Material(name='34NiCrMo6', sigma_u=1050, sigma_y=950, sigma_Dm1=520)
-```
-
-The difference is that the shaft's material doesn't have a *surface hardness* property, and that it has the fatigue limit stress '$\boldsymbol{\sigma_{D-1}}$' property.
-
-After that, we can define the shaft as follows:
-
+I think by now, you got a hint of how the toolbox works: if you want to define a certain component, let's say a shaft, then you'd need to type something like ```pgt.Shaft(...)``` and identify its characteristics in the parantheses. You wouldn't be wrong to think that; hence, the definition of **A1**:
 
 ```python
 # Shaft A1 definition
-A1 = pgt.Shaft(name="A1", inputs=[input_motor], outputs[R1], sups=np.array[A, B], axis=k, 
+A1 = pgt.Shaft(name="A1", inputs=[input_motor], outputs=[R1], sups=np.array([A, B]), axis=k, 
               loc=[0, 0, 0], material=shaftMaterial)
 ```
 Some words regarding the shaft's defined parameters:
@@ -640,6 +632,235 @@ Some words regarding the shaft's defined parameters:
 2) **inputs**: an array of defined objects that represent the input load(s) from the shaft's perspective.
 3) **outputs**: an array of defined objects that represent the output load(s) from the shaft's perspective.
 4) **sups**: an array of defined supports that are supposed to hold the shaft.
-5) **axis**: he unit vector corresponding to the axis around which the bearing rotates.
+5) **axis**: the unit vector corresponding to the axis around which the shaft rotates.
 6) **loc**: a vector that represents the absolute location of the shaft with respect to the global reference frame.
-7) **material**: a defined material object that hold the characteristics of the shaft.
+7) **material**: a defined material object that holds the material characteristics of the shaft.
+
+When we execute the code in the previous block, **PyGRITbx** calculates the absolute locations of all the components involed in the definiion: input(s), output(s), and supports.
+
+Now we can move to our first **mesh** definition.
+
+**- Mesh M1**
+
+To define a mesh, we need to understand which is the driving gear and which is the driven gear. For the mesh between gears **R1** and **R2**, the former is the driving and the latter is the driven. Moreover, we need to understand a property called ***radiality***. Imagine putting your finger on the center of the driving gear, **R1**, then try to move your finger along one axis or two axes to reach the center of the driven gear, **R2**, in the shortest way possible. Which axis or axes did you have to follow? The answer to this question is the radiality array. In our case, to go from gear **R1** to gear **R2**, along the shortest path, you need to move along the **y-axis** in the negative direction; therefore, the radiality is set to **-j**. One last thing to note is that this is an ***external*** gear mesh and not an ***internal*** gear mesh. Hence, the definition of the mesh can be seen in the following block:
+
+```python
+# Mesh M1 definition
+M1 = pgt.GearMesh(name="M1", drivingGear=R1, drivenGear=R2, radiality=[-j], type="External")
+```
+
+Given that the definition of shaft **A1** calculated the absolute location of gear **R1**, with the defintion of mesh **M1** we actually just calculated the absolute location of gear **R2**. This is because **PyGRITbx** already calculated all the necessary properties of the gears (e.g. pitch radius), and using the radiality property, it knows in which direction to go to locate the center of gear **R2** from gear **R1**.
+
+Now we can define the spindle as another shaft.
+
+**- Spindle P**
+
+Similar to shaft **A1**, spindle **P** would have a **name**, **inputs**, **outputs**, and **sups** properties. For the location? Well, given that we know gear **R2**'s relative location with respect to the spindle and that gear **R2**'s absolute location has just been calculated by the definition of mesh **M1**, the toolbox will calculate the absolute location of the spindle automatically. As a result, we can define the spindle as follows:
+
+```python
+# Spindle P definition
+spindleP = pgt.Shaft(name="P", inputs=[R2], outputs=[R3], sups=np.array([F, F]))
+```
+
+Note that from the spindle's perspective, it receives an input load from gear **R2** (input) and transfers that through gear **R3** (output). The supports are there but we're not required to calculate any reaction forces on them so it doesn't really matter.
+
+**- Mesh M2**
+
+Can you already define mesh **M2** on your own? It's very similar to that of **M1**. I'll give it to you without further explanation and I suggest you try implementing it on your own first:
+
+```python
+# Mesh M2 definition
+M2 = pgt.GearMesh(name="M2", drivingGear=R3, drivenGear=R4, radiality=[j], type="External")
+```
+
+**- Shaft A2**
+
+Finally, we come to the last component definition. Similar to **A1**, we will use the ```pgt.Shaft(...)``` definition; however, we'd only need to define the shaft's material beforehand, similar to how we defined that of the gears:
+
+```python
+shaftMaterial = pgt.Material(name='34NiCrMo6', sigma_u=1050, sigma_y=950, sigma_Dm1=520)
+```
+
+The difference is that the shaft's material doesn't have a *surface hardness* property, and that it has the fatigue limit stress '$\boldsymbol{\sigma_{D-1}}$' property.
+
+After that, we can define the shaft as follows:
+
+```python
+A2 = pgt.Shaft(name="A2", inputs=[R4], outputs=[output], sups=np.array([C, D]), axis=k, 
+              material=shaftMaterial)
+```
+
+If you reached this point, ***CONGRATULATIONS***! You've completed the hardest part of the project and now you can sit there and see the toolbox do its magic calculating all the required forces as we will discover in the next section.
+
+## May the Forces Resolve For You
+In the previous section, we learnt how to define the components a gearbox is composed of (gears, bearings, shafts, users). We also learnt how to define the interactions between these components using shafts and meshes. Now is the time to harvest some fruits in return: solving for the exchanged forces between components and the reactions produced by the bearings.
+
+It's important to note that approaching such problems is a sequential process. In other words, if you're solving this project by hand, you would start by the torque equilibrium condition on shaft **A1** around the **z-axis** to get the torque on gear **R1** (in this case, it's the same as the torque produced by the input motor but in the opposite sense). Through the torque, you would then calculate the tangential force acting on gear **R1** by dividing this calculated torque by the pitch radius of the gear. After that, you can use the pressure and helix angles to calculate the resultant force acting on gear **R1** which you can then resolve into the axial and radial directions. From there, you can apply equilibrium equations and equations given by the SKF catalogue to calculate all the reaction forces produced by the bearings.
+
+Sounds hideous? *Yes*. How many times did I have to do it in my life? *Countless*. Hence, the toolbox!
+
+### Shaft A1
+
+Using **PyGRITbx**, you only need to call the function ```.solve()``` on shaft **A1** and it will do all of this for you! Through the process, the toolbox will prompt you with some questions. Let's see an example by solving for shaft **A1**:
+
+```python
+# Solving for shaft A1
+A1.solve()
+```
+
+Once you run the previous block, you'll get the output shown in [**Figure 16**](#figure-16). **PyGRITbx** first checks the torque equilibrium on the shaft around its rotational axis and, if that's not satisfied, it attempts to resolve it by setting the output torque equal to the input torque but in the opposite sense. If that is done successfully, you'll get the prompt in [**Figure 17**](#figure-17) telling you that a torque has been detected on the output (in this case gear **R1**); therefore, would you like to solve for the torque equilibrium of that component around its rotational axis? In other words, would you like to calculate the forces on gear **R1**? These are the tangential, radial, and axial forces since **R1** is a gear. Therefore, our answer should be **y**.
+
+<figure id="figure-16">
+    <img src="figure16_A1_output_1.png"
+    alt="Solving for A1 --> Output 1"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 16 - Solving for A1 --> Output 1</figcaption>
+</figure>
+
+<figure id="figure-17">
+    <img src="figure17_A1_detectedTorquePrompt.png"
+    alt="Solving for A1 --> Detected Torque Prompt"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 17 - Solving for A1 --> Detected Toruqe Prompt</figcaption>
+</figure>
+
+Once you hit enter after inserting **y**, you'll get additional messages informing you that the toolbox is attempting to solve the forces on gear **R1** ([**Figure 18**](#figure-18)). Once an equilibrium is reached on gear **R1**, the toolbox switches its focus back to shaft **A1** and checks its force equilibrium. If the force equilibrium isn't satisfied then you'll get the prompt shown in [**Figure 19**](#figure-19) asking you to solve the reaction forces on the bearings that support the shaft. If you're interested in the reaction forces, then you should enter **y** and hit enter. Otherwise, enter **n** and hit enter. In this case, we are interested so we must enter **y** and hit enter.
+
+<figure id="figure-18">
+    <img src="figure18_A1_output_2.png"
+    alt="Solving for A1 --> Output 2"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 18 - Solving for A1 --> Output 2</figcaption>
+</figure>
+
+<figure id="figure-19">
+    <img src="figure19_A1_externalForcesPrompt.png"
+    alt="Solving for A1 --> Reaction Forces Prompt"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 19 - Solving for A1 --> Reaction Forces Prompt</figcaption>
+</figure>
+
+Eventually, the toolbox will calculate the reaction forces produced by the bearings, and it will output the relevant messages to confirm that. Furthermore, in case of tapered roller bearings, it will inform you of the specific case it found to solve the axial forces based on the SKF Catalogue.
+
+<figure id="figure-20">
+    <img src="figure20_A1_output_final.png"
+    alt="Solving for A1 --> Final Output"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 20 - Solving for A1 --> Final Prompt</figcaption>
+</figure>
+
+To see the reaction forces, run the following blocks:
+
+```python
+# Reaction Forces on Bearing A
+print(A.F_tot.force)
+
+# output
+# [-809.65663399  475.8122391  -865.57152262]
+```
+
+```python
+# Reaction Forces on Bearing B
+print(B.F_tot.force)
+
+# output
+# [1679.80485557 -812.84590846  548.86347056]
+```
+
+### Gear R2
+
+For gear **R2**, we would like to transmit the forces from gear **R1** to it. Again, we simply use the ```.solve()``` function but this on the gear object **R2** that we had defined in the previous section:
+
+```python
+# Solving for Gear R2
+R2.solve()
+```
+
+Running this block will produce the messages shown in [**Figure 21**](#figure-21). The toolbox checks the torque equilibrium of gear **R2** around its rotational axis. If that's not satisfied, it checks for the solvability. Particularly, the toolbox goes and looks at the meshes in which gear **R2** is included. If there are torques/forces already resolved in those meshes, then the toolbox will pass them onto the gear.
+
+Given that we already solved for gear **R1** when we answered yes on the first prompt while solving for shaft **A1**, the toolbox resolved the torque and forces in mesh **M1** in hindsight. Now that we call ```.solve()``` on **R2**, the toolbox finds those torque and forces and applies them onto gear **R2**.
+
+<figure id="figure-21">
+    <img src="figure21_R2_output.png"
+    alt="Solving for R2"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 21 - Solving for R2</figcaption>
+</figure>
+
+### Spindle P
+
+For spindle **P**, we only care about transmitting the load from gear **R2** to gear **R3**. So let's run the following code block:
+
+```python
+# Solving for Spindle P
+spindleP.solve()
+```
+
+When prompted with solving the equilibrium for gear **R3**, we should answer **y**. However, when prompted with calculating the reaction forces on the spindle, we should answer **n**. The output messages are shown in [**Figure 22**](#figure-22).
+
+<figure id="figure-22">
+    <img src="figure22_P_output.png"
+    alt="Solving for Spindle P"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 22 - Solving for Spindle P</figcaption>
+</figure>
+
+### Gear R4
+Now that we solved for gear **R3** via the spindle **P**, we can directly jump to solve for gear **R4** just like we did for gear **R2** after solving shaft **A1**.
+
+```python
+# Solving for Gear R4
+R4.solve()
+```
+
+### Output
+Now that we solved for gear **R4**, we actually have the torque applied on shaft **A2**. Recalling the equations to calculate the forces exerted by output user from [**Figure 15**](#figure-15), we can actually now set the forces of the output user via the following block:
+
+```python
+# Calculating the Forces on Output User
+Fout_r = np.abs(np.sum(R4.ETs[0].torque)) / 0.1 * j
+Fout_a = 0.25 * np.abs(np.sum(Fout_r)) * (-k)
+Fout = pgt.Force(force=Fout_a+Fout_r, loc=output.abs_loc)
+A2.outputs[0].updateEFs([Fout])
+```
+
+First, we calculate the radial force. This is equal to the torque on **R4** (equal to torque on **A2**) in the positive **y-axis** direction; hence, the multiplication with the unit vector **j**.
+
+Second, we calculate the axial force. This is ***0.25*** multplied by the radial force but directed in the negatice **z-axis** direction; hence, the multiplication with the unit vector **-k**.
+
+Third, we define a **Force** via the toolbox whose vector is the sum of the radial and axial forces and location coincides with the absolute location of the output component we defined earlier.
+
+Finally, we update the forces on the first, and only, output of the shaft **A2**.
+
+### Shaft A2
+At this point, we can resolve the forces on shaft **A2** and answer **y** on the prompt regarding the calculation of the reaction forces. We will not get the prompt for solving the equilibrium on the output because in this case the output is NOT a gear but a generic component.
+
+```python
+# Solving for Shaft A2
+A2.solve()
+```
+
+<figure id="figure-23">
+    <img src="figure23_A2_output.png"
+    alt="Solving for Shaft A2"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 23 - Solving for Shaft A2</figcaption>
+</figure>
+
+To check the reaction forces on the bearings **C** and **D**, we can run the following blocks:
+
+```python
+# Reaction Forces on Bearing C
+print(C.F_tot.force)
+
+# output
+# [-4712.18425533  1684.48038039 -1563.81677665]
+```
+
+```python
+# Reaction Forces on Bearing D
+print(D.F_tot.force)
+
+# output
+# [ 1368.98319344 -5247.4713804   2130.83481793]
+```
