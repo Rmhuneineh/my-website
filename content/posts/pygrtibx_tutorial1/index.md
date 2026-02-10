@@ -4,7 +4,7 @@ date: 2026-01-31T15:13:13+02:00
 author: "Ragheed"
 excerpt: ""
 description: "Gearbox configuration definition. Calculating forces."
-draft: true
+draft: false
 math: true
 toc: true
 categories: ["Mechanical Engineering", "Programming Tutorial"]
