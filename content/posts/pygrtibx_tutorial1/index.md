@@ -1,5 +1,5 @@
 ---
-title: "PyGRITbx - Tutorial Series Part 1"
+title: "PyGRITbx - Tutorial Series Part 1: May The Forces Resolve for You"
 date: 2026-01-31T15:13:13+02:00
 author: "Ragheed"
 excerpt: ""
@@ -360,7 +360,7 @@ It's worth spending a couple of words regarding the properties defined which are
 2) **type**: this can be either **Roller** or **Pin**, depending on the support type. Each shaft is supported by at least 2 supports and it's **necessary** to define one of the supports as **Roller** and the other as **Pin**. Sometimes this is given in the scheme in [**Figure 2**](#figure-2). In this specific example and by looking at shaft **A1**, we can see that both bearings, **A** and **B**, are **Pins**; therefore, how do we choose which to define as **Roller** and which as **Pin**? The answer: *it doesn't matter*. This is because the SKF catalogue provides a way to calculate the axial forces as shown in [**Figure 7**](#figure-7). But don't worry, **PyGRITbx** will do this calculation for you.
 3) **bearingType**: depending on the bearing type, this could be **Ball**, **Tapered**, or **Contact Ball** bearing.
 4) **catalogueType**: based on the SKF Catalogue, the bearing could be a **Standard** or **Explorer** bearing.
-5) **shoulder**: this parameter is set to **1** if the axial shoulder is located in the positive sense of the shaft's axis with respect to the bearing and **-1** otherwise. Example: if the shaft's axis is pointing to the right and the shoulder is to the right of the bearing, the parameter must be set to **1**. If the shaft's axsi is pointing to the right and the should is to the left of the bearing, the parameter must be set to **-1**.
+5) **shoulder**: this parameter is set to **1** if the axial shoulder is located in the positive sense of the shaft's axis with respect to the bearing and **-1** otherwise. Example: if the shaft's axis is pointing to the right and the shoulder is to the right of the bearing, the parameter must be set to **1**. If the shaft's axis is pointing to the right and the shoulder is to the left of the bearing, the parameter must be set to **-1**.
 6) **arr**: this is the arrangement the bearing is currently in. It could be **Single**, **F2F**, **B2B**, **Tandem**, or **Double row**, depending on the given arrangement.
 7) **axis**: the unit vector corresponding to the axis around which the bearing rotates.
 
@@ -400,7 +400,7 @@ Bearing **A** will be located at the origin as shown in [**Figure 9**](#figure-9
     <figcaption>Figure 9 - Shaft A1 Scheme</figcaption>
 </figure>
 
-However, given that the bearing is a tapered roller bearing, we're actually saying that the bearing's pressure center, which has and offset from bearing's center point, is located at the origin (point in red circle in [**Figure 10**](#figure-10)).
+However, given that the bearing is a tapered roller bearing, we're actually saying that the bearing's pressure center, which has an offset from the bearing's center point, is located at the origin (point in red circle in [**Figure 10**](#figure-10)).
 
 <figure id="figure-10">
     <img src="figure10_taperedBearing_center.png"
@@ -532,7 +532,7 @@ $$
 Finally, we can calculate $\mathbf{c_2}$ as follows (as practice, try to figure out why by using [**Figure 13**](#figure-13)):
 
 $$
-c_2 = [58.5 - (B_D - a_D)] + 35 = [58.5 - (19.75 - 16)] + 35 = 89.75 [mm]
+c_2 = (58.5 - a_D) + 35 = (58.5 - 16) + 35 = 77.5 [mm]
 $$
 
 At this point, we can define the location of all the components on shaft **A2** as shown in the following code block:
@@ -541,7 +541,7 @@ At this point, we can define the location of all the components on shaft **A2** 
 # Shaft A1 Components' Locations
 a2 = 23.75 # [mm]
 b2 = 58 # [mm]
-c2 = 89.75 # [mm]
+c2 = 77.5 # [mm]
 
 zR4 = 26 # [mm]
 zC = zR4 + a2
@@ -549,7 +549,7 @@ zD = zC + b2
 zOut = zD + c2 # [mm]
 ```
 
-After having located all the components, we can finally rewrite the blocks defining the gears and bearings the one additional parameter to define, ***loc**:
+After having located all the components, we can finally rewrite the blocks defining the gears and bearings with one additional parameter: **loc**.
 
 **NOTE: ONLY AFTER RUNNING THE CODE BLOCKS FOR DEFINING THE LOCATIONS CAN YOU RUN THE FOLLOWING BLOCKS FOR GEARS AND BEARINGS!**
 
@@ -642,7 +642,7 @@ Now we can move to our first **mesh** definition.
 
 **- Mesh M1**
 
-To define a mesh, we need to understand which is the driving gear and which is the driven gear. For the mesh between gears **R1** and **R2**, the former is the driving and the latter is the driven. Moreover, we need to understand a property called ***radiality***. Imagine putting your finger on the center of the driving gear, **R1**, then try to move your finger along one axis or two axes to reach the center of the driven gear, **R2**, in the shortest way possible. Which axis or axes did you have to follow? The answer to this question is the radiality array. In our case, to go from gear **R1** to gear **R2**, along the shortest path, you need to move along the **y-axis** in the negative direction; therefore, the radiality is set to **-j**. One last thing to note is that this is an ***external*** gear mesh and not an ***internal*** gear mesh. Hence, the definition of the mesh can be seen in the following block:
+To define a mesh, we need to understand which is the driving gear and which is the driven gear. For the mesh between gears **R1** and **R2**, the former is the driving and the latter is the driven. Moreover, we need to understand a property called ***radiality***. Imagine putting your finger on the center of the driving gear, **R1**, then try to move your finger along one axis or two axes to reach the center of the driven gear, **R2**, in the shortest way possible. Which axis or axes did you have to follow? The answer to this question is the radiality array. In our case, to go from gear **R1** to gear **R2**, along the shortest path, you need to move along the **y-axis** in the negative sense; therefore, the radiality is set to **-j**. One last thing to note is that this is an ***external*** gear mesh and not an ***internal*** gear mesh. Hence, the definition of the mesh can be seen in the following block:
 
 ```python
 # Mesh M1 definition
@@ -769,7 +769,7 @@ print(B.F_tot.force)
 
 ### Gear R2
 
-For gear **R2**, we would like to transmit the forces from gear **R1** to it. Again, we simply use the ```.solve()``` function but this on the gear object **R2** that we had defined in the previous section:
+For gear **R2**, we would like to transmit the forces from gear **R1** to it. Again, we simply use the ```.solve()``` function but this time on the gear object **R2**:
 
 ```python
 # Solving for Gear R2
@@ -854,7 +854,7 @@ To check the reaction forces on the bearings **C** and **D**, we can run the fol
 print(C.F_tot.force)
 
 # output
-# [-4712.18425533  1684.48038039 -1563.81677665]
+# [-4712.18425533  1205.44789724 -1519.97716269]
 ```
 
 ```python
@@ -862,10 +862,18 @@ print(C.F_tot.force)
 print(D.F_tot.force)
 
 # output
-# [ 1368.98319344 -5247.4713804   2130.83481793]
+# [ 1368.98319344 -4768.43889726  2086.99520397]
 ```
 
 ## Final Words
-If you've made it to this point, then you survived my attempt to portray my experience in explaining this exercise that I had taught for several years. Congratulations, mastering this part will help you save time solving this project.
+If you made it to this point, then you survived my attempt to portray my experience in explaining this exercise that I had taught for several years. Congratulations, mastering this part will help you save time solving this project.
 
-For the next part, we will perform the static and fatigue verification on shaft **A2**. So stay tuned =)
+In short, we analysed the configuration of a given gearbox composed of an input, intermediate, and output shaft. Power is transmitted from the input motor to the output user thanks to the gears mounted on the shafts. All the loads exchanged during the power transfer are supported by the SKF bearings that hold the shafts in place.
+
+Through this analysis, we were able to define objects representing these components. We also configured the interaction between said components. This allowed us to model the power flow by calculating the loads exhanged between them as well as the reaction forces produced by the bearings.
+
+With this, we conclude the first part of the gearbox components design verification process via a simple toolbox: **PyGRITbx**. For the next part, we will perform the static and fatigue verification on shaft **A2**. So stay tuned =)
+
+## References
+- Richard G. Budynas and J. Keith Nisbett, *Shigley's Mechanical Engineering Design*, McGraw-Hill, 2006.
+- SKF Group, *SKF Rolling Bearings Catalogue*, SKF. [SKF Rolling Bearings](https://www.skf.com/group/products/rolling-bearings)
