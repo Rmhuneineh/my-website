@@ -270,7 +270,7 @@ Note that these properties can be classified into:
 In our definition, we will separate these 2 sets of properties. We can also see that gears **R1** and **R4** share the same material properties, while gear **R2** material properties match that of gear **R3**.
 
 ```python
-# Gear Material Properties
+# Gear Material Properties Definition
 R1R4_material = pgt.Material(name='Steel', sigma_u=1060, sigma_y=950, HB=335)
 R2R3_material = pgt.Material(name='Steel', sigma_u=1950, sigma_y=1400, HB=560)
 ```
@@ -538,7 +538,7 @@ $$
 At this point, we can define the location of all the components on shaft **A2** as shown in the following code block:
 
 ```python
-# Shaft A1 Components' Locations
+# Shaft A2 Components' Locations
 a2 = 23.75 # [mm]
 b2 = 58 # [mm]
 c2 = 77.5 # [mm]
@@ -623,7 +623,7 @@ In this section, we will define our last components. **Shafts** and **Meshes** a
 I think by now, you got a hint of how the toolbox works: if you want to define a certain component, let's say a shaft, then you'd need to type something like ```pgt.Shaft(...)``` and identify its characteristics in the parantheses. You wouldn't be wrong to think that; hence, the definition of **A1**:
 
 ```python
-# Shaft A1 definition
+# Shaft A1 Definition
 A1 = pgt.Shaft(name="A1", inputs=[input_motor], outputs=[R1], sups=np.array([A, B]), axis=k, 
               loc=[0, 0, 0], material=shaftMaterial)
 ```
@@ -645,7 +645,7 @@ Now we can move to our first **mesh** definition.
 To define a mesh, we need to understand which is the driving gear and which is the driven gear. For the mesh between gears **R1** and **R2**, the former is the driving and the latter is the driven. Moreover, we need to understand a property called ***radiality***. Imagine putting your finger on the center of the driving gear, **R1**, then try to move your finger along one axis or two axes to reach the center of the driven gear, **R2**, in the shortest way possible. Which axis or axes did you have to follow? The answer to this question is the radiality array. In our case, to go from gear **R1** to gear **R2**, along the shortest path, you need to move along the **y-axis** in the negative sense; therefore, the radiality is set to **-j**. One last thing to note is that this is an ***external*** gear mesh and not an ***internal*** gear mesh. Hence, the definition of the mesh can be seen in the following block:
 
 ```python
-# Mesh M1 definition
+# Mesh M1 Definition
 M1 = pgt.GearMesh(name="M1", drivingGear=R1, drivenGear=R2, radiality=[-j], type="External")
 ```
 
@@ -658,7 +658,7 @@ Now we can define the spindle as another shaft.
 Similar to shaft **A1**, spindle **P** would have a **name**, **inputs**, **outputs**, and **sups** properties. For the location? Well, given that we know gear **R2**'s relative location with respect to the spindle and that gear **R2**'s absolute location has just been calculated by the definition of mesh **M1**, the toolbox will calculate the absolute location of the spindle automatically. As a result, we can define the spindle as follows:
 
 ```python
-# Spindle P definition
+# Spindle P Definition
 spindleP = pgt.Shaft(name="P", inputs=[R2], outputs=[R3], sups=np.array([F, F]))
 ```
 
@@ -669,7 +669,7 @@ Note that from the spindle's perspective, it receives an input load from gear **
 Can you already define mesh **M2** on your own? It's very similar to that of **M1**. I'll give it to you without further explanation and I suggest you try implementing it on your own first:
 
 ```python
-# Mesh M2 definition
+# Mesh M2 Definition
 M2 = pgt.GearMesh(name="M2", drivingGear=R3, drivenGear=R4, radiality=[j], type="External")
 ```
 
@@ -678,6 +678,7 @@ M2 = pgt.GearMesh(name="M2", drivingGear=R3, drivenGear=R4, radiality=[j], type=
 Finally, we come to the last component definition. Similar to **A1**, we will use the ```pgt.Shaft(...)``` definition; however, we'd only need to define the shaft's material beforehand, similar to how we defined that of the gears:
 
 ```python
+# Shaft A2 Material Properties Definition
 shaftMaterial = pgt.Material(name='34NiCrMo6', sigma_u=1050, sigma_y=950, sigma_Dm1=520)
 ```
 
@@ -686,6 +687,7 @@ The difference is that the shaft's material doesn't have a *surface hardness* pr
 After that, we can define the shaft as follows:
 
 ```python
+# Shaft A2 Definition
 A2 = pgt.Shaft(name="A2", inputs=[R4], outputs=[output], sups=np.array([C, D]), axis=k, 
               material=shaftMaterial)
 ```
