@@ -188,3 +188,303 @@ Finally, we can add the profile to the shaft object:
 # Add Static Profile to Shaft A2
 A2.addProfile(profile=static_profile_refined)
 ```
+
+## Shaft Sections
+The last step before proceeding with static analysis is define the shaft sections. These are the given sections in the techinal drawing: ***V1***, ***V2***, and ***V3***. Sections are imperative to locate potentially critical locations at which you might suspect the component to fail (in this case the shaft). Moreover, we can include notch sensitivity and geometrical stress concentration factors on said sections to consider material properties, surface finish, and the topology of the shaft in stress calculation!
+
+Defining a section is a relatively easy task in **PyGRITbx**. All you need is:
+1) **name**: to act as a label when plotting
+2) **loc**: axial location of the section along the shaft's rotational axis
+3) **d**: the diameter of the shaft at the specified section
+4) **Ra**: surface roughness of the shaft at the specified section
+5) **material**: the material of the shaft
+
+**- V1**
+
+Therefore, to define section **V1**, you execute the following:
+
+```python
+# Section V1 Definition
+V1 = pgt.ShaftSection(name="V1", loc=26, d=30, Ra=0.8, material=shaftMaterial)
+```
+Note that section **V1** is in the middle of a keyseat. In the project description, it's specified that the stress concentration raiser $\mathbf{K_f}$ is equal to **1.6** for *Bending Load* and equal to **2.0** for **Torsional Load*. Therefore, in addition to the section definition we need to execute the following:
+
+```python
+# Section V1 Stress Concentration Raiser
+V1.appendKf(Kf=np.array([1.6, 2.0]), loadType=np.array(["Bending", "Torsion"]))
+```
+
+**- V2**
+
+Similarly, we can define section **V2**:
+
+```python
+# Section V2 Definition
+V2 = pgt.ShaftSection(name="V2", loc=46, d=40, Ra=0.8, material=shaftMaterial)
+```
+
+Given that there's a notch and a shoulder at section **V2**, we'd need to define the characteristics of the notch sensitivity as well as the geometric stress raiser. This is simply done as shown in the following block:
+
+```python
+# Section V2 Notch Sensitivity and Geometric Stress Rasier
+V2.addNotchSensitivity(notchRadius=1, sigma_u=shaftMaterial.sigma_u)
+V2.addGeometricStressRaiser(r2d=1/35, D2d=40/35)
+```
+
+For the notch sensitivity $\mathbf{q}$, **PyGRITbx** uses the graph shown in [**Figure 7**](#figure-7) to get the proper value.
+
+<figure id="figure-7">
+    <img src="figure7_notchSensitivityGraph.png"
+    alt="Notch Sensitivity Graph"
+    style="max-width: 80%; height: auto;">
+    <figcaption>Figure 7 - Notch Sensitivity Graph</figcaption>
+</figure>
+
+For the geometric stress concentration factor $\mathbf{K_t}$, the toolbox uses the set of graphs in [**Figure 8**](#figure-8) to get the proper value for each type of load.
+
+<figure id="figure-8">
+    <img src="figure8_geometricStressConcentrationFactorGraph.png"
+    alt="Geometric Stress Concentration Factor Graph"
+    style="max-width: 80%; height: auto;">
+    <figcaption>Figure 8 - Geometric Stress Concentration Factor Graph</figcaption>
+</figure>
+
+The geometric stress raiser is then calculated according to the following equation:
+
+$$
+K_f = 1 + q * (K_t - 1)
+$$
+
+**- V3**
+
+Similar to section **V2**, section **V3** is defined along with a notch sensitivity and a geometric stress raiser.
+
+```python
+# Section V3 Definition
+V3 = pgt.ShaftSection(name="V3", loc=133, d=40, Ra=0.8, material=shaftMaterial)
+
+# Section V3 Notch Sensitivity and Geometric Stress Raiser
+V3.addNotchSensitivity(notchRadius=1, sigma_u=shaftMaterial.sigma_u)
+V3.addGeometricStressRaiser(r2d=1/34, D2d=40/34)
+```
+
+Once all section are properly defined, we can proceed by adding them to the shaft they belong to.
+
+```python
+# Add Sections to Shaft A2
+userSections = np.array([V1, V2, V3])
+A2.addSections(sections=userSections)
+```
+
+## Static Verification
+At this point, the shaft profile has been defined and the proper sections along its axis have been located with their corresponding characteristics. Now, we can proceed by performing the static verification on the shaft. To do that we simply call the function ```.performStaticVerification()``` on the shaft object. **PyGRITbx** will then proceed to calculate the internal loads along the axis of the shaft and will ask you whether you want to plot them. Answer **y** if you want them to be plotted (this is the case here). The toolbox will then calculate the internal stresses along the shaft's axis based on the cross-sectional properties and the previously calculated internal loads. It will then ask you whether you would like to plot these stresses; answer **y** if you want them to be plotted (again this is the case here). You can simply answer **n** if you don't want the internal loads or the internal stresses to be plotted.
+
+```python
+# Perform Static Verification on Shaft A2
+A2.performStaticVerification(RF=RF, profile=A2.profiles[0])
+```
+
+Executing the code above and answering **y** on the 2 prompts will produce 10 graphs: 5 with internal loads and 5 with their corresponding internal stresses. For brevity I will only show you 1 of each as an example. In [**Figure 9**](#figure-9), you can see the bending moment $\mathbf{M_B(z)}$ which is the resultant bending moment between the x-axis and the y-axis components.
+
+<figure id="figure-9">
+    <img src="figure9_bendingMomentPlot.png"
+    alt="Bending Moment Plot"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 9 - Bending Moment Plot</figcaption>
+</figure>
+
+In [**Figure 10**](#figure-10), you can see the equivalent stress plot $\boldsymbol{\sigma_{id}(z)}$ which is calculated according to the resultant bending stress and torsional stress.
+
+<figure id="figure-10">
+    <img src="figure10_equivalentStressPlot.png"
+    alt="Equivalent Stress Plot"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 10 - Equivalent Stress Plot</figcaption>
+</figure>
+
+After all the plots, the output message shows the calculated safety factor at each cross section as shown in [**Figure 11**](#figure-11).
+
+<figure id="figure-11">
+    <img src="figure11_staticSafetyFactorOutput.png"
+    alt="Static Safety Factor"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 11 - Static Safety Factor</figcaption>
+</figure>
+
+## Fatigue Verification
+To perform the fatigue verification, we follow the same procedure as that of the static verification:
+1) define a profile (if not already defined)
+2) define sections of interest with their corresponding characteristics (if not already defined)
+3) calculate and plot new stresses based on this profile (internal loads don't change but internal stresses do)
+4) calculate mean and alternating stress for sections of interest and plot them on the Haigh Diagram
+5) calculate the safety factor for each section of interest
+
+We already defined the proper fatigue profile by the way. It's actually the trial profile presented earlier because it's specified in the project description that for keyseats, the diameter remains the same! Therefore, we will simply copy/paste the previous code block for defining the trial profile and change the name accordingly:
+
+```python
+# Define Radii and Axial Locations
+radii = np.array([33, 35,    35, 40,    40,  34,    34,    32,   32,  31]) / 2 
+alocs = np.array([ 0,  1,  45.9, 46, 132.9, 133, 158.4, 158.5,  222, 223])
+
+# Define a Shaft Profile for Fatigue Verification
+fatigue_profile = pgt.ShaftProfile(name="Fatigue Profile", radii=radii, locs=alocs)
+
+# Refine Fatigue Profile
+fatigue_profile_refined = fatigue_profile.refineProfile(delta=0.1)
+
+# Add First Fillet to Fatigue Profile
+fatigue_profile_refined.addFillet(radius=1, quadrant=[2], zOff=45, dOff=18.5)
+
+# Add Second Fillet to Fatigue Profile
+fatigue_profile_refined.addFillet(radius=1, quadrant=[1], zOff=134, dOff=18)
+
+# Add Fatigue Profile to Shaft A2
+A2.addProfile(profile=fatigue_profile_refined)
+
+# Modify Diameter for First Section Accordingly
+A2.sections[0].d = 35
+userSections[0].d = 35
+```
+
+Notice that in the last lines in the previous block we modify the diameter of the first section that is present on the keyseat since for the fatigue profile the diameter is actually different. Other than that, we simply reproduced what we've done before for the static verification profile.
+
+At this point, we can simply proceed with the fatigue verfication. As you might've guessed, we would simply call the ```.performFatigueVerification()``` function on the shaft object **A2**.
+
+```python
+# Perform Fatigue Verification on Shaft A2
+A2.performFatigueVerification(RF=RF, profile=A2.profiles[1])
+```
+
+Running this will result in 3 prompts in the following order:
+1) Do internal loads need to plotted: in this case, not necessarily because we've already plotted them on the static profile and they won't change
+2) Do internal stresses need to plotted: yes becuaseu, even though the internal loads didn't change, the cross-sectional properties along the axis of the shaft changed indeed and this will results in slightly different trends
+3) Do the Haigh Diagrams need to be plotted: yes because it's required in the project description and it is of interest to see the operating point at each cross-section
+
+In [**Figure 12**](#figure-12), you can see an example of the Haigh Diagram for section **V1** where the purple asterisk represents the operating point.
+
+<figure id="figure-12">
+    <img src="figure12_haighDiagramExample.png"
+    alt="Haigh Diagram Example"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 12 - Haigh Diagram Example</figcaption>
+</figure>
+
+The final output after the plots is the calculated fatigue safety factor at the interested sections as shown in [**Figure 13**](#figure-13).
+
+<figure id="figure-13">
+    <img src="figure13_fatigueSafetyFactorOutput.png"
+    alt="Fatigue Safety Factor"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 13 - Fatigue Safety Factor</figcaption>
+</figure>
+
+With this, we mark the finish of this part of the tutorial!
+
+## Tips, Tricks, and Final Remarks
+Eventhough we were able to perform the static and fatigue verification of the shaft **A2**, the project description asks for a bit more. Yes, the toolbox is able to present you with beautiful plots of the internal loads, internal stresses, and Haigh Diagrams which are required; however, the project asks also for alternating and mean stresses for every cross section as well as the stress concentration factors, fatigue limit correction factors, fatigue limit correction for the component, and the equivalent alternating and mean stresses.
+
+The latter requirements are calculated by the toolbox automatically but one needs to know how to extract this information so I'll give you examples of each.
+
+### Alternating and Mean Stresses
+For every section of interest, the alternating and mean stresses are calculated automatically by the toolbox. To extract this information, we can refer to the following example applied on section **V1**.
+
+```python
+# Section V1: Alternating and Mean Stress
+# Normal Stress
+print(f"Mean Normal Stress: {float(V1.sigma_m_N):.3} [MPa]")
+print(f"Alternating Normal Stress: {float(V1.sigma_a_N):.3} [MPa]")
+
+# Output
+# Mean Normal Stress: 1.26 [MPa]
+# Alternating Normal Stress: 0.0 [MPa]
+
+# Bending Stress
+print(f"Mean Bending Stress: {float(V1.sigma_m_Mb):.3} [MPa]")
+print(f"Alternating Bending Stress: {float(V1.sigma_a_Mb):.3} [MPa]")
+
+# Output
+# Mean Bending Stress: 0.0 [MPa]
+# Alternating Bending Stress: 95.1 [MPa]
+
+# Torsional Stress
+print(f"Mean Torsional Stress: {float(V1.tau_m_Mt):.3} [MPa]")
+print(f"Alternating Torsional Stress: {float(V1.tau_a_Mt):.3} [MPa]")
+
+# Output
+# Mean Torsional Stress: 26.9 [MPa]
+# Alternating Torsional Stress: 0.0 [MPa]
+```
+
+### Stress Concentration Factors
+Applying the same concept on the stress concentration factors for the section **V2**, we can execute the following:
+
+```python
+# Section V2: Stress Concentration Factors
+# Notch Sensitivity
+print(f"Notch Sensitivity: {V2.q.qReq:.2} [-]")
+
+# Output
+# Notch Sensitivity: 0.88 [-]
+
+# Normal Stress Concentration Factor and Raiser
+print(f"Normal Stress Concentration Factor: {V2.Kt_N:.3} [-]")
+print(f"Normal Stress Concentration Raiser: {V2.Kf_N:.3} [-]")
+
+# Output
+# Normal Stress Concentration Factor: 2.24 [-]
+# Normal Stress Concentration Raiser: 2.1 [-]
+
+# Bending Stress Concentration Factor and Raiser
+print(f"Bending Stress Concentration Factor: {V2.Kt_B:.3} [-]")
+print(f"Bending Stress Concentration Raiser: {V2.Kf_B:.3} [-]")
+
+# Output
+# Bending Stress Concentration Factor: 2.25 [-]
+# Bending Stress Concentration Raiser: 2.1 [-]
+
+# Torsional Stress Concentration Factor and Raiser
+print(f"Torsional Stress Concentration Factor: {V2.Kt_T:.3} [-]")
+print(f"Torsional Stress Concentration Raiser: {V2.Kf_T:.3} [-]")
+
+# Output
+# Torsional Stress Concentration Factor: 1.62 [-]
+# Torsional Stress Concentration Raiser: 1.55 [-]
+```
+
+### Fatigue Limit Correction Factors
+Now let's take a look at how we can extract information about the fatigue limit correction factors for size effect and surface finish effect by applying it on section **V3**:
+
+```python
+# Section V3: Fatigue Limit Correction Factors
+# Size Effect
+print(f"C_s = {V3.FLCF.Cs_req:.3} [-]")
+
+# Output
+# C_s = 0.845 [-]
+
+# Surface Finish Effect
+print(f"C_f = {V3.FLCF.Cf_req:.3} [-]")
+
+# Output
+# C_f = 1.0 [-]
+```
+
+### Fatigue Limit Correction for Shaft A2
+We can simply print the calculated corrected fatigue limit of shaft **A2** by retrieving it from the material properties of the shaft using the following code snippet:
+
+```python
+# Fatigue Limit Correction on Shaft A2
+print(f"Corrected Fatigue Limit: {A2.material.sigma_Dm1C:.4} [MPa]")
+
+# Output
+# Corrected Fatigue Limit: 307.6 [MPa]
+```
+
+## Final Words
+To sum up, in this tutorial we took the forces calculated in [**Part 1**](https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/ "PyGRITbx - Tutorial Series Part 1: May The Forces Resolve for You") and used them to calculate and plot the internal loads acting on shaft **A2**. By defining the profile of shaft **A2**, we implicitly defined the cross-sectional properties across the shaft's axis and used that information to calculate and plot the internal stresses acting on the shaft. We then specified which sections are of interest to limit the static and fatigue safety factors calculation to those sections only.
+
+In the 3rd and last part, we will perform bending and wear analysis on gears **R1** and **R3** as well as bearing life analysis on all the bearings!
+
+## References
+- Richard G. Budynas and J. Keith Nisbett, *Shigley's Mechanical Engineering Design*, McGraw-Hill, 2006.
+- SKF Group, *SKF Rolling Bearings Catalogue*, SKF. [SKF Rolling Bearings](https://www.skf.com/group/products/rolling-bearings)
