@@ -286,9 +286,9 @@ R1 = pgt.Gear(name="R1", axis=k, m_n=2.5, z=18, psi=20, phi_n=20, Q_v=7, FW=30, 
 # R2
 R2 = pgt.Gear(name="R2", axis=k, m_n=2.5, z=73, psi=-20, phi_n=20, Q_v=7, FW=30, material=R2R3_material)
 # R3
-R3 = pgt.Gear(name="R3", axis=k, m_n=2.5, z=19, psi=-20, phi_n=20, Q_v=7, FW=30, material=R2R3_material)
+R3 = pgt.Gear(name="R3", axis=k, m_n=2.5, z=19, psi=20, phi_n=20, Q_v=7, FW=30, material=R2R3_material)
 # R4
-R4 = pgt.Gear(name="R4", axis=k, m_n=2.5, z=51, psi=20, phi_n=20, Q_v=7, FW=30, material=R1R4_material)
+R4 = pgt.Gear(name="R4", axis=k, m_n=2.5, z=51, psi=-20, phi_n=20, Q_v=7, FW=30, material=R1R4_material)
 ```
 
 At this point, each gear object has a label, axis of rotation, normal module, number of teeth, helix angle, normal pressure angle, transmission accuracy level, tooth face width, and material properties defined.
@@ -560,9 +560,9 @@ R1 = pgt.Gear(name="R1", loc=zR1, axis=k, m_n=2.5, z=18, psi=20, phi_n=20, Q_v=7
 # R2
 R2 = pgt.Gear(name="R2", loc=zR2, axis=k, m_n=2.5, z=73, psi=-20, phi_n=20, Q_v=7, FW=30, material=R2R3_material)
 # R3
-R3 = pgt.Gear(name="R3", loc=zR3, axis=k, m_n=2.5, z=19, psi=-20, phi_n=20, Q_v=7, FW=30, material=R2R3_material)
+R3 = pgt.Gear(name="R3", loc=zR3, axis=k, m_n=2.5, z=19, psi=20, phi_n=20, Q_v=7, FW=30, material=R2R3_material)
 # R4
-R4 = pgt.Gear(name="R4", loc=zR4, axis=k, m_n=2.5, z=51, psi=20, phi_n=20, Q_v=7, FW=30, material=R1R4_material)
+R4 = pgt.Gear(name="R4", loc=zR4, axis=k, m_n=2.5, z=51, psi=-20, phi_n=20, Q_v=7, FW=30, material=R1R4_material)
 ```
 
 ```python
@@ -659,7 +659,7 @@ Similar to shaft **A1**, spindle **P** would have a **name**, **inputs**, **outp
 
 ```python
 # Spindle P Definition
-spindleP = pgt.Shaft(name="P", inputs=[R2], outputs=[R3], sups=np.array([F, F]))
+spindleP = pgt.Shaft(name="P", inputs=[R2], outputs=[R3], sups=np.array([F, F]), axis=k)
 ```
 
 Note that from the spindle's perspective, it receives an input load from gear **R2** (input) and transfers that through gear **R3** (output). The supports are there but we're not required to calculate any reaction forces on them so it doesn't really matter.
@@ -856,7 +856,7 @@ To check the reaction forces on the bearings **C** and **D**, we can run the fol
 print(C.F_tot.force)
 
 # output
-# [-4712.18425533  1205.44789724 -1519.97716269]
+# [-4712.18425533  -217.84651183 -1474.13035668]
 ```
 
 ```python
@@ -864,7 +864,7 @@ print(C.F_tot.force)
 print(D.F_tot.force)
 
 # output
-# [ 1368.98319344 -4768.43889726  2086.99520397]
+# [ 1368.98319344 -3345.14448819  3257.97407164]
 ```
 
 ## Final Words
