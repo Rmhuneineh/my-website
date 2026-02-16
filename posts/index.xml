@@ -1,4 +1,18 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>All Posts - Ragheed Huneineh</title><link>https://ragheedhuneineh.com/posts/</link><description>All Posts | Ragheed Huneineh</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 31 Jan 2026 15:13:13 +0200</lastBuildDate><atom:link href="https://ragheedhuneineh.com/posts/" rel="self" type="application/rss+xml"/><item><title>PyGRITbx - Tutorial Series Part 1: May The Forces Resolve for You</title><link>https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/</link><pubDate>Sat, 31 Jan 2026 15:13:13 +0200</pubDate><author>Ragheed</author><guid>https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/</guid><description><![CDATA[<h2 id="outline">Outline</h2>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>All Posts - Ragheed Huneineh</title><link>https://ragheedhuneineh.com/posts/</link><description>All Posts | Ragheed Huneineh</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 15 Feb 2026 13:00:00 +0200</lastBuildDate><atom:link href="https://ragheedhuneineh.com/posts/" rel="self" type="application/rss+xml"/><item><title>PyGRITbx - Tutorial Series Part 2: No Pain No Gain, No Stress No Strain</title><link>https://ragheedhuneineh.com/posts/pygritbx_tutorial2/</link><pubDate>Sun, 15 Feb 2026 13:00:00 +0200</pubDate><author>Ragheed</author><guid>https://ragheedhuneineh.com/posts/pygritbx_tutorial2/</guid><description><![CDATA[<h2 id="outline">Outline</h2>
+<p>Hello and welcome to the second part of this tutorial series. In the previous part, we learnt how to:</p>
+<ol>
+<li>install <strong>PyGRITbx</strong> along with the tools required to work with it</li>
+<li>define components that constitute a given gearbox</li>
+<li>define interactions between components</li>
+<li>calculate the forces exchanged between said components and the reaction forces produced by the bearings.</li>
+</ol>
+<p>In this part, we will take our previous results to:</p>
+<ol>
+<li>define a shaft profile based on the given technical drawing</li>
+<li>calculate and plot internal loads and stresses on the defined shaft profile</li>
+<li>perform static and fatigue verification by calculating the corresponding safety factors.</li>
+</ol>
+<p>Without further talk, let&rsquo;s get down to business.</p>]]></description></item><item><title>PyGRITbx - Tutorial Series Part 1: May The Forces Resolve for You</title><link>https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/</link><pubDate>Sat, 31 Jan 2026 15:13:13 +0200</pubDate><author>Ragheed</author><guid>https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/</guid><description><![CDATA[<h2 id="outline">Outline</h2>
 <p>This blog post is the first part of a 3-part series. In this series, I would like to introduce you to my python toolbox with a tutorial based on a project given to mechanical engineering students following the course <strong>&ldquo;02SXJJM - Fundamentals of Machine Design&rdquo;</strong> at <strong>Politecnico di Torino</strong>. My best hope is that this series would serve as a guide for the reader in future projects concerning geargbox design validation.</p>]]></description></item><item><title>Intro</title><link>https://ragheedhuneineh.com/posts/intro/</link><pubDate>Wed, 21 Jan 2026 18:36:20 +0000</pubDate><author>Ragheed</author><guid>https://ragheedhuneineh.com/posts/intro/</guid><description><![CDATA[<h1 id="welcome-to-my-website">Welcome To My Website</h1>
 <p>Hello and welcome to my website.</p>
 <p>I will attempt to share my thoughts with the interested reader using blog posts. Topics will vary in discipline but mainly I would like to portray my perspective on the following:</p>
