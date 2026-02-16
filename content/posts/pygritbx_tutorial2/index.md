@@ -94,11 +94,7 @@ To define and check the profile, you can run the following code:
 trial = pgt.ShaftProfile(name="trial", radii=radii, locs=alocs)
 
 # Plot Defined Profile
-from matplotlib import pyplot as plt
-plt.plot(trail.locs, trial.radii, color="r")
-plt.plot(trail.locs, -trail.radii, color="r")
-plt.ylim([-100, 100])
-plt.show()
+trial.plotProfile()
 ```
 
 This should produce the plot seen in [**Figure 4**](#figure-4).
@@ -127,11 +123,7 @@ We can then define and plot the **static_profile** similar to the previous defin
 static_profile = pgt.ShaftProfile(name="Static Profile", radii=static_radii, locs=static_alocs)
 
 # Plot Defined Profile
-from matplotlib import pyplot as plt
-plt.plot(static_profile.locs, static_profile.radii, color="r")
-plt.plot(static_profile.locs, -static_profile.radii, color="r")
-plt.ylim([-100, 100])
-plt.show()
+static_profile.plotProfile()
 ```
 
 This will procduce the profile shown in [**Figure 5**](#figure-5).
@@ -391,24 +383,24 @@ For every section of interest, the alternating and mean stresses are calculated 
 ```python
 # Section V1: Alternating and Mean Stress
 # Normal Stress
-print(f"Mean Normal Stress: {float(V1.sigma_m_N):.3} [MPa]")
-print(f"Alternating Normal Stress: {float(V1.sigma_a_N):.3} [MPa]")
+print(f"Mean Normal Stress: {V1.sigma_m_N:.3} [MPa]")
+print(f"Alternating Normal Stress: {V1.sigma_a_N:.3} [MPa]")
 
 # Output
 # Mean Normal Stress: 1.26 [MPa]
 # Alternating Normal Stress: 0.0 [MPa]
 
 # Bending Stress
-print(f"Mean Bending Stress: {float(V1.sigma_m_Mb):.3} [MPa]")
-print(f"Alternating Bending Stress: {float(V1.sigma_a_Mb):.3} [MPa]")
+print(f"Mean Bending Stress: {V1.sigma_m_Mb:.3} [MPa]")
+print(f"Alternating Bending Stress: {V1.sigma_a_Mb:.3} [MPa]")
 
 # Output
 # Mean Bending Stress: 0.0 [MPa]
 # Alternating Bending Stress: 95.1 [MPa]
 
 # Torsional Stress
-print(f"Mean Torsional Stress: {float(V1.tau_m_Mt):.3} [MPa]")
-print(f"Alternating Torsional Stress: {float(V1.tau_a_Mt):.3} [MPa]")
+print(f"Mean Torsional Stress: {V1.tau_m_Mt:.3} [MPa]")
+print(f"Alternating Torsional Stress: {V1.tau_a_Mt:.3} [MPa]")
 
 # Output
 # Mean Torsional Stress: 26.9 [MPa]
