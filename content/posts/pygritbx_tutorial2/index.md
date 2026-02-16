@@ -4,7 +4,7 @@ date: 2026-02-15T13:00:00+02:00
 author: "Ragheed"
 excerpt: ""
 description: "Shaft Profile Definition. Static and fatigue verification for shaft design."
-draft: true
+draft: false
 math: true
 toc: true
 categories: ["Mechanical Engineering", "Programming Tutorial"]
@@ -35,7 +35,7 @@ Recall the configuration of the gearbox from [**Figure 1**](#figure-1).
     <figcaption>Figure 1 - Gearbox Assembly</figcaption>
 </figure>
 
-Our goal is to define the profile of shaft **A2** to be able to calculate the internall stresses along the axis of the shaft after having computer the internal loads. To achieve this, we refer to the technical drawing of shaft **A2** as portrayed in [**Figure 2**](#figure-2).
+Our goal is to define the profile of shaft **A2** to be able to calculate the internall stresses along the axis of the shaft after having computed the internal loads. To achieve this, we refer to the technical drawing of shaft **A2** as portrayed in [**Figure 2**](#figure-2).
 
 <figure id="figure-2">
     <img src="figure2_shaftA2_technicalDrawing.png"
@@ -63,7 +63,7 @@ Therefore, **P1** is located at $\rArr (0, 16.5)$.
 
 **- P2**
 
-Due to the chamfer, the axial location of corner **P2** is equal to **1 [mm]**. The radius at which it's located has been explained earlier and is equal to **35 [mm]**.
+Due to the chamfer, the axial location of corner **P2** is equal to **1 [mm]**. The diameter at which it's located has been explained earlier and is equal to **35 [mm]**.
 
 Therefore, **P2** is located at $\rArr (1, 17.5)$.
 
@@ -79,7 +79,7 @@ The axial location of corner **P4** is **46 [mm]** as specified by the axial dim
 
 Therefore, **P4** is located at $\rArr (46, 20)$.
 
-By continuing in this manner, we can do 2 numpy arrays specifying all the points' axial locations and all their corresponding radii as shown in the following code block:
+By continuing in this manner, we can define 2 numpy arrays: the first specifying all the points' axial locations and, the second, all their corresponding radii as shown in the following code block:
 
 ```python
 # Define Radii and Axial Locations
@@ -108,7 +108,7 @@ This should produce the plot seen in [**Figure 4**](#figure-4).
 
 I would be more than happy to inform you that this is almost all it takes to define the *general* profile of the shaft. However, it's specified in this project that for **static verification**, sections where there's a keyseat should be considered with a diameter equal to the nominal diameter stated in the technical drawing minus the depth of the keyseat!
 
-Hence, cross-sections present us with new corners and the proper radii and locations should be defined as follows:
+Hence, this requirement presents us with new corners and the proper radii and locations should be defined as follows:
 
 ```python
 # Define Radii and Axial Locations with Keyseats
@@ -136,21 +136,21 @@ This will procduce the profile shown in [**Figure 5**](#figure-5).
 </figure>
 
 ### Refinements and Fillets
-Our current definition of the shaft profile is coarse. This means that any calculations performed along the shaft's axis won't be distributed properly along the axis but only on those *corners* that we have defined earlier. We need a fine profile with more points interpolated between the defined corners so that we can have a precise representation of the profile whenver we need it to perform certain calculations.
+Our current definition of the shaft profile is coarse. This means that any calculations performed along the shaft's axis won't be distributed properly along the axis but only on those *corners* that we have defined earlier. We need a fine profile with more points interpolated between the defined corners to have a precise representation of the profile whenever we need it to perform certain calculations along its axis.
 
-Luckily, **PyGRITbx** has the feature that refines a profile based on a given *delta* separating one point from another along the shaft's axis. Small values of *delta* allows for a finer profile with more precise calculations at the cost of memory and speed. By default, *delta* is set to **0.1 [mm]**. To refine the profile, use the code in the following block:
+Luckily, **PyGRITbx** has the feature that refines a profile based on a given *delta* separating one point from another along the shaft's axis. Small values of *delta* allow for a finer profile with more precise calculations at the cost of memory and speed. By default, *delta* is set to **0.1 [mm]**. To refine the profile, use the code in the following block:
 
 ```python
 # Refine Static Profile
 static_profile_refined = static_profile.refineProfile(delta=0.1)
 ```
 
-Now that we have a refined profile, we can add fillets as shown in the technical drawing. Why are fillets important? Because stresses are calculated based on the cross-sectional properties. If we don't take into consideration the chane in those properties due to the change in diameter, we would be missing out on valuable information regarding *how* the trend of these stresses changes along the shaft's axis.
+Now that we have a refined profile, we can add fillets as shown in the technical drawing. Why are fillets important? Because stresses are calculated based on the cross-sectional properties. If we don't take into consideration the change in those properties due to the change in diameter caused by the fillets, we would be missing out on valuable information regarding *how* the trend of these stresses changes along the shaft's axis.
 
 To define a fillet, we need the following information:
-1) **radius**: this is simply the radius of the filler and must be in **[mm]**
-2) **zOff**: this is the axial location of the center of the circle the fillet is part of
-3) **dOff**: this is the radial location of the center of the circle the fillet is part of
+1) **radius**: this is simply the radius of the fillet and must be in **[mm]**
+2) **zOff**: this is the axial location of the center of the circle the fillet is part of (**[mm]**)
+3) **dOff**: this is the radial location of the center of the circle the fillet is part of (**[mm]**)
 4) **quadrant**: an array specifying one or more quadrants of the circle the fillet is part of ([**Figure 6**](#figure-6))
 
 <figure id="figure-6">
@@ -160,7 +160,7 @@ To define a fillet, we need the following information:
     <figcaption>Figure 6 - Fillet Quadrants</figcaption>
 </figure>
 
-From detail **F-F** in [**Figure 2**](#figure-2), we can see that there's a fillet of radius **1 [mm]** belonging to quadrant **2** at an axial location equal to **45 [mm]** and a radial location equal to **18.5 [mm]**. Therefore we can simply add a fillet this fillet to the static profile using the following piece of code:
+From detail **F-F** in [**Figure 2**](#figure-2), we can see that there's a fillet of radius **1 [mm]** belonging to quadrant **2** at an axial location equal to **45 [mm]** and a radial location equal to **18.5 [mm]**. Therefore we can simply add this fillet to the static profile using the following piece of code:
 
 ```python
 # Add First Fillet to Static Profile
@@ -182,7 +182,7 @@ A2.addProfile(profile=static_profile_refined)
 ```
 
 ## Shaft Sections
-The last step before proceeding with static analysis is define the shaft sections. These are the given sections in the techinal drawing: ***V1***, ***V2***, and ***V3***. Sections are imperative to locate potentially critical locations at which you might suspect the component to fail (in this case the shaft). Moreover, we can include notch sensitivity and geometrical stress concentration factors on said sections to consider material properties, surface finish, and the topology of the shaft in stress calculation!
+The last step before proceeding with static analysis is defining the shaft sections. These are the given sections in the techinal drawing: ***V1***, ***V2***, and ***V3***. Sections are imperative to locate potentially critical locations at which you might suspect the component to fail (in this case the shaft). Moreover, we can include in the analysis the notch sensitivity and geometrical stress concentration factors on said sections to consider material properties, surface finish, and the topology of the shaft!
 
 Defining a section is a relatively easy task in **PyGRITbx**. All you need is:
 1) **name**: to act as a label when plotting
@@ -215,7 +215,7 @@ Similarly, we can define section **V2**:
 V2 = pgt.ShaftSection(name="V2", loc=46, d=40, Ra=0.8, material=shaftMaterial)
 ```
 
-Given that there's a notch and a shoulder at section **V2**, we'd need to define the characteristics of the notch sensitivity as well as the geometric stress raiser. This is simply done as shown in the following block:
+Given that there's a fillet and a shoulder at section **V2**, we'd need to define the characteristics of the notch sensitivity as well as the geometric stress raiser. This is simply done as shown in the following block:
 
 ```python
 # Section V2 Notch Sensitivity and Geometric Stress Rasier
@@ -260,7 +260,7 @@ V3.addNotchSensitivity(notchRadius=1, sigma_u=shaftMaterial.sigma_u)
 V3.addGeometricStressRaiser(r2d=1/34, D2d=40/34)
 ```
 
-Once all section are properly defined, we can proceed by adding them to the shaft they belong to.
+Once all sections are properly defined, we can proceed by adding them to the shaft they belong to.
 
 ```python
 # Add Sections to Shaft A2
@@ -269,7 +269,7 @@ A2.addSections(sections=userSections)
 ```
 
 ## Static Verification
-At this point, the shaft profile has been defined and the proper sections along its axis have been located with their corresponding characteristics. Now, we can proceed by performing the static verification on the shaft. To do that we simply call the function ```.performStaticVerification()``` on the shaft object. **PyGRITbx** will then proceed to calculate the internal loads along the axis of the shaft and will ask you whether you want to plot them. Answer **y** if you want them to be plotted (this is the case here). The toolbox will then calculate the internal stresses along the shaft's axis based on the cross-sectional properties and the previously calculated internal loads. It will then ask you whether you would like to plot these stresses; answer **y** if you want them to be plotted (again this is the case here). You can simply answer **n** if you don't want the internal loads or the internal stresses to be plotted.
+At this point, the shaft profile has been defined and the proper sections along its axis have been located with their corresponding characteristics. Now, we can proceed by performing the static verification on the shaft. To do that we simply call the function ```.performStaticVerification()``` on the shaft object. **PyGRITbx** will then proceed to calculate the internal loads along the axis of the shaft and will ask you whether you want to plot them. Answer **y** if you want them to be plotted (this is the case here). The toolbox will then calculate the internal stresses along the shaft's axis based on the cross-sectional properties and the previously calculated internal loads. It will then ask you whether you would like to plot these stresses; answer **y** if you want them to be plotted (again, this is the case here). You can simply answer **n** if you don't want the internal loads or the internal stresses to be plotted.
 
 ```python
 # Perform Static Verification on Shaft A2
@@ -285,7 +285,7 @@ Executing the code above and answering **y** on the 2 prompts will produce 10 gr
     <figcaption>Figure 9 - Bending Moment Plot</figcaption>
 </figure>
 
-In [**Figure 10**](#figure-10), you can see the equivalent stress plot $\boldsymbol{\sigma_{id}(z)}$ which is calculated according to the resultant bending stress and torsional stress.
+In [**Figure 10**](#figure-10), you can see the equivalent stress plot $\boldsymbol{\sigma_{id}(z)}$ which is calculated according to the resultant normal stress and torsional stress.
 
 <figure id="figure-10">
     <img src="figure10_equivalentStressPlot.png"
@@ -294,7 +294,7 @@ In [**Figure 10**](#figure-10), you can see the equivalent stress plot $\boldsym
     <figcaption>Figure 10 - Equivalent Stress Plot</figcaption>
 </figure>
 
-After all the plots, the output message shows the calculated safety factor at each cross section as shown in [**Figure 11**](#figure-11).
+After all the plots, the output message shows the calculated static safety factor at each cross section as shown in [**Figure 11**](#figure-11).
 
 <figure id="figure-11">
     <img src="figure11_staticSafetyFactorOutput.png"
@@ -308,8 +308,8 @@ To perform the fatigue verification, we follow the same procedure as that of the
 1) define a profile (if not already defined)
 2) define sections of interest with their corresponding characteristics (if not already defined)
 3) calculate and plot new stresses based on this profile (internal loads don't change but internal stresses do)
-4) calculate mean and alternating stress for sections of interest and plot them on the Haigh Diagram
-5) calculate the safety factor for each section of interest
+4) calculate mean and alternating stresses for sections of interest and plot them on the Haigh Diagram
+5) calculate the fatigue safety factor for each section of interest
 
 We already defined the proper fatigue profile by the way. It's actually the trial profile presented earlier because it's specified in the project description that for keyseats, the diameter remains the same! Therefore, we will simply copy/paste the previous code block for defining the trial profile and change the name accordingly:
 
@@ -338,7 +338,7 @@ A2.sections[0].d = 35
 userSections[0].d = 35
 ```
 
-Notice that in the last lines in the previous block we modify the diameter of the first section that is present on the keyseat since for the fatigue profile the diameter is actually different. Other than that, we simply reproduced what we've done before for the static verification profile.
+Notice that in the last lines we modify the diameter of the first section that is present on the keyseat since for the fatigue profile the diameter is actually different. Other than that, we simply reproduced what we've done before for the static verification profile.
 
 At this point, we can simply proceed with the fatigue verfication. As you might've guessed, we would simply call the ```.performFatigueVerification()``` function on the shaft object **A2**.
 
@@ -349,7 +349,7 @@ A2.performFatigueVerification(RF=RF, profile=A2.profiles[1])
 
 Running this will result in 3 prompts in the following order:
 1) Do internal loads need to plotted: in this case, not necessarily because we've already plotted them on the static profile and they won't change
-2) Do internal stresses need to plotted: yes becuaseu, even though the internal loads didn't change, the cross-sectional properties along the axis of the shaft changed indeed and this will results in slightly different trends
+2) Do internal stresses need to plotted: yes because, even though the internal loads didn't change, the cross-sectional properties along the axis of the shaft changed indeed and this will result in slightly different trends
 3) Do the Haigh Diagrams need to be plotted: yes because it's required in the project description and it is of interest to see the operating point at each cross-section
 
 In [**Figure 12**](#figure-12), you can see an example of the Haigh Diagram for section **V1** where the purple asterisk represents the operating point.
@@ -378,7 +378,7 @@ Eventhough we were able to perform the static and fatigue verification of the sh
 The latter requirements are calculated by the toolbox automatically but one needs to know how to extract this information so I'll give you examples of each.
 
 ### Alternating and Mean Stresses
-For every section of interest, the alternating and mean stresses are calculated automatically by the toolbox. To extract this information, we can refer to the following example applied on section **V1**.
+For every section of interest, the alternating and mean stresses are calculated automatically by the toolbox. To extract this information, refer to the following example applied on section **V1**.
 
 ```python
 # Section V1: Alternating and Mean Stress
