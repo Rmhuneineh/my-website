@@ -18,10 +18,12 @@ Hello and welcome to the second part of this tutorial series. In the previous pa
 3) define interactions between components
 4) calculate the forces exchanged between said components and the reaction forces produced by the bearings.
 
-In this part, we will take our previous results to:
+In this part, we will take the results from [**Part 1**](https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/ "PyGRITbx - Tutorial Series Part 1: May The Forces Resolve for You") to:
 1) define a shaft profile based on the given technical drawing
 2) calculate and plot internal loads and stresses on the defined shaft profile
 3) perform static and fatigue verification by calculating the corresponding safety factors.
+
+The code blocks present in this part can be executed ONLY if the code blocks from the previous part have been executed already within a currently active **Jupyter** session. Therefore, make sure you add these blocks to the file created in the first part. 
 
 Without further talk, let's get down to business.
 
