@@ -625,7 +625,7 @@ I think by now, you got a hint of how the toolbox works: if you want to define a
 ```python
 # Shaft A1 Definition
 A1 = pgt.Shaft(name="A1", inputs=[input_motor], outputs=[R1], sups=np.array([A, B]), axis=k, 
-              loc=[0, 0, 0], material=shaftMaterial)
+              loc=[0, 0, 0])
 ```
 Some words regarding the shaft's defined parameters:
 1) **name**:  this is simply a label that you are free to choose or simply leave empty.
