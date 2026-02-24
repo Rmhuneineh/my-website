@@ -4,7 +4,7 @@ date: 2026-02-19T05:12:00+02:00
 author: "Ragheed"
 excerpt: ""
 description: "Gear Bending and Wear. Bearing Life Analysis"
-draft: true
+draft: false
 math: true
 toc: true
 categories: ["Mechanical Engineering", "Programming Tutorial"]
@@ -13,17 +13,17 @@ tags: ["Machine Design"]
 
 ## Outline
 In this third and final part of this tutorial series, you will learn how to use **PyGRITbx** to:
-1) perform gear tooth *bending* analysis on gears **R1** and **R3**
-2) perform gear tooth *pitting* analysis on gears **R1** and **R3**
-3) perform bearing life analysis on all the bearings inside the gearbox
+1) perform gear tooth *bending* analysis
+2) perform gear tooth *pitting* analysis
+3) perform bearing life analysis
 
 These analyses are based on the forces calculated in [**Part 1**](https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/ "PyGRITbx - Tutorial Series Part 1: May The Forces Resolve for You") of this tutorial series. Therefore, make sure the code blocks from that part are present in a currently active **Jupyter** session and have already been executed before you try to run any of the code blocks in this part.
 
 ## Gear Tooth Verification
 
-Gears transfer a given power from one rotating shaft to another, with the purpose of cotrolling either the **torque** or the **rotational speed** to a desired value. This is achieved by exchanging forces between 2 (or more) gears with different number of teeth.
+Gears transfer a given power from one rotating shaft to another, with the purpose of cotrolling either the **torque** or the **rotational speed** (sense and/or magnitude) to a desired value. This is achieved by exchanging forces between 2 (or more) gears with different number of teeth.
 
-Within the process, the teeth bends due to the load they need to support. Moreover, the contact between 2 teeth belonging to 2 different gears is dynamic; that is, there's relative motion between the teeth.
+In the process of power transfer, the teeth bend due to the load they need to support. Moreover, the contact between 2 teeth belonging to 2 different gears is dynamic; that is, there's relative motion between the teeth.
 
 These two phenomena cause the gear tooth to fail in 2 different modes:
 - bending
@@ -75,11 +75,11 @@ For gear **R1**, we know:
 - use condition is for **Commercial, enclosed units**
 - bending fatigue strength is equal to **320 [MPa]**
 - stress cycle factor model: $\bold{Y_N = 1.3558.N^{-0.0178}}$
-- number of cycles is equal to $10^8$
+- number of cycles is equal to $\bold{10^8}$
 - temperature is equal to **60 [$\bold{\degree C}$]**
 - reliability is equal to **99%**
 
-Given this information, we can calculate the bending safety factor by executing the following code:
+Given this information, we can perform the gear tooth bending analysis by executing the following code:
 
 ```python
 # Gear R1: Gear Tooth Bending Safety Factor
@@ -169,13 +169,13 @@ print(f"Reliability Factor: {R1.Y_Z:.2f}")
 # Output: Reliability Factor: 1.00
 ```
 
-Would you be up for the challenge to perform the same analysis on gear **R3**? I'll leave to you as a practice!
+Would you be up for the challenge to perform the same analysis on gear **R3**? I'll leave it to you as a practice!
 
 ### Gear Tooth Pitting (Wear) Failure Mode
 
 Calculating the wear safety factor is as hectic an endeavor as that of calculating the bending safety factor. It includes a similar equation relying on several factors that need to be either calculated or obtained from reference graphs.
 
-To avoid fitting too many equations, I will simply present the code required to calculate the wear safety factor, a brief description of the parameters involved, and the output of the code execution, all performed on gear **R3**.
+To avoid repelling you with too many equations, I will simply present the code required to perform the gear tooth pitting analysis, a brief description of the parameters involved, and the output of the code execution, all performed on gear **R3**.
 
 ```python
 # Gear R3: Gear Tooth Wear Safety Factor
@@ -196,7 +196,7 @@ The parameters involved are:
 - surface condition factor $\bold{Z_R}$ is equal to **1**
 - contact fatigue strength is equal to **1360 [MPa]**
 - stress cycle factor model: $\bold{Z_N = 1.4488.N^{-0.023}}$
-- number of cycles is equal to $10^8$
+- number of cycles is equal to $\bold{10^8}$
 
 To print out the calculated factors involved in the gear tooth pitting analysis, use the same logic as that shown for the gear tooth bending analysis performed on gear **R1** in the previous section.
 
@@ -224,7 +224,7 @@ $$
 
 Where **C** is the dynamic basic load rating of the bearing.
 
-To calculate the static safety factor, we us the following formula:
+To calculate the static safety factor, we use the following formula:
 
 $$
 s_0 = \frac{C_0}{P_0}
@@ -256,7 +256,7 @@ Where:
 
 **PyGRITbx** requires information about the reliability, contamination condition, oil of choice, and the $\bold{a_{SKF}}$ coefficient to calculate the estimated life of the bearing.
 
-Once the oil is chosen, we can define it as a python object as shown in the following code block:
+Once the oil is chosen, we can define it as a Python object as shown in the following code block:
 
 ```python
 # Define Oil of Choice
@@ -317,9 +317,9 @@ The output should look like [**Figure 4**](#figure-4).
 For bearings **B**, **C**, and **D**, we can execute a similar code and obtain the corresponding results. I'll leave it to you as a challenge!
 
 ## Final Words
-We can finally conclude this tutorial series with some final words. If you've made it this far, thanks for following along. I would like to stress that **PyGRITbx** is just a tool that can help you perform the analysis faster. This doesn't mean that you shouldn't understand the concepts and the theory behind the analyses. If anything, the tool can be properly used only if the user understands the concepts and the theory behind it, but doesn't want to waste time performing tedious calculations.
+This remarks the conclusion of this tutorial series. If you've made it this far, thanks for following along. I would like to stress that **PyGRITbx** is just a tool that can help you perform the analysis faster. This doesn't mean that you shouldn't understand the concepts and the theory behind the analyses. If anything, the tool can be properly used only if the user understands the concepts and the theory behind it, but doesn't want to waste time performing tedious calculations.
 
-Finally, I would like to ask for your kind feedback. Please reach out if you think I should change my writing style or the way I tend to explain things. If you find any bugs in the toolbox, I would really appreciate feedback so I (or we) can work on fixing it. If you have an idea that can be transformed into a feature, let me know so we can discuss it and work on adding it.
+Finally, I would like to ask for your kind feedback. Please reach out if you think I should change my writing style or the way I tend to explain things. If you find any bugs in the toolbox, I would really appreciate feedback so I (or we) can work on fixing them. If you have an idea that can be transformed into a feature, let me know so we can discuss it and work on adding it.
 
 Thank you!
 
