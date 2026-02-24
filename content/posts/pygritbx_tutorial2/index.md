@@ -385,24 +385,24 @@ For every section of interest, the alternating and mean stresses are calculated 
 ```python
 # Section V1: Alternating and Mean Stress
 # Normal Stress
-print(f"Mean Normal Stress: {V1.sigma_m_N:.3} [MPa]")
-print(f"Alternating Normal Stress: {V1.sigma_a_N:.3} [MPa]")
+print(f"Mean Normal Stress: {V1.sigma_m_N:.2f} [MPa]")
+print(f"Alternating Normal Stress: {V1.sigma_a_N:.2f} [MPa]")
 
 # Output
 # Mean Normal Stress: 1.26 [MPa]
 # Alternating Normal Stress: 0.0 [MPa]
 
 # Bending Stress
-print(f"Mean Bending Stress: {V1.sigma_m_Mb:.3} [MPa]")
-print(f"Alternating Bending Stress: {V1.sigma_a_Mb:.3} [MPa]")
+print(f"Mean Bending Stress: {V1.sigma_m_Mb:.2f} [MPa]")
+print(f"Alternating Bending Stress: {V1.sigma_a_Mb:.2f} [MPa]")
 
 # Output
 # Mean Bending Stress: 0.0 [MPa]
 # Alternating Bending Stress: 95.1 [MPa]
 
 # Torsional Stress
-print(f"Mean Torsional Stress: {V1.tau_m_Mt:.3} [MPa]")
-print(f"Alternating Torsional Stress: {V1.tau_a_Mt:.3} [MPa]")
+print(f"Mean Torsional Stress: {V1.tau_m_Mt:.2f} [MPa]")
+print(f"Alternating Torsional Stress: {V1.tau_a_Mt:.2f} [MPa]")
 
 # Output
 # Mean Torsional Stress: 26.9 [MPa]
@@ -415,30 +415,30 @@ Applying the same concept on the stress concentration factors for the section **
 ```python
 # Section V2: Stress Concentration Factors
 # Notch Sensitivity
-print(f"Notch Sensitivity: {V2.q.qReq:.2} [-]")
+print(f"Notch Sensitivity: {V2.q.qReq:.2f} [-]")
 
 # Output
 # Notch Sensitivity: 0.88 [-]
 
 # Normal Stress Concentration Factor and Raiser
-print(f"Normal Stress Concentration Factor: {V2.Kt_N:.3} [-]")
-print(f"Normal Stress Concentration Raiser: {V2.Kf_N:.3} [-]")
+print(f"Normal Stress Concentration Factor: {V2.Kt_N:.2f} [-]")
+print(f"Normal Stress Concentration Raiser: {V2.Kf_N:.2f} [-]")
 
 # Output
 # Normal Stress Concentration Factor: 2.24 [-]
 # Normal Stress Concentration Raiser: 2.1 [-]
 
 # Bending Stress Concentration Factor and Raiser
-print(f"Bending Stress Concentration Factor: {V2.Kt_B:.3} [-]")
-print(f"Bending Stress Concentration Raiser: {V2.Kf_B:.3} [-]")
+print(f"Bending Stress Concentration Factor: {V2.Kt_B:.2f} [-]")
+print(f"Bending Stress Concentration Raiser: {V2.Kf_B:.2f} [-]")
 
 # Output
 # Bending Stress Concentration Factor: 2.25 [-]
 # Bending Stress Concentration Raiser: 2.1 [-]
 
 # Torsional Stress Concentration Factor and Raiser
-print(f"Torsional Stress Concentration Factor: {V2.Kt_T:.3} [-]")
-print(f"Torsional Stress Concentration Raiser: {V2.Kf_T:.3} [-]")
+print(f"Torsional Stress Concentration Factor: {V2.Kt_T:.2f} [-]")
+print(f"Torsional Stress Concentration Raiser: {V2.Kf_T:.2f} [-]")
 
 # Output
 # Torsional Stress Concentration Factor: 1.62 [-]
@@ -451,13 +451,13 @@ Now let's take a look at how we can extract information about the fatigue limit 
 ```python
 # Section V3: Fatigue Limit Correction Factors
 # Size Effect
-print(f"C_s = {V3.FLCF.Cs_req:.3} [-]")
+print(f"C_s = {V3.FLCF.Cs_req:.2f} [-]")
 
 # Output
-# C_s = 0.845 [-]
+# C_s = 0.84 [-]
 
 # Surface Finish Effect
-print(f"C_f = {V3.FLCF.Cf_req:.3} [-]")
+print(f"C_f = {V3.FLCF.Cf_req:.2f} [-]")
 
 # Output
 # C_f = 1.0 [-]
@@ -471,7 +471,7 @@ We can simply print the calculated corrected fatigue limit of shaft **A2** by re
 print(f"Corrected Fatigue Limit: {A2.material.sigma_Dm1C:.4} [MPa]")
 
 # Output
-# Corrected Fatigue Limit: 307.6 [MPa]
+# Corrected Fatigue Limit: 307.58 [MPa]
 ```
 
 ## Final Words
