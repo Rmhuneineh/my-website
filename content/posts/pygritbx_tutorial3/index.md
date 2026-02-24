@@ -140,7 +140,7 @@ print(f"Size Factor: {R1.K_S:.2f}")
 # Bending Strength Geometry Factor
 print(f"Geometry Factor J': {R1.J_p:.2f}")
 print(f"Geometry Factor J'': {R1.J_pp:.2f}")
-print(f"Bending Strength Geometry Factor J': {R1.Y_J:.2f}")
+print(f"Bending Strength Geometry Factor Y_J: {R1.Y_J:.2f}")
 
 # Output:
 # Geometry Factor J': 0.53
@@ -167,7 +167,6 @@ print(f"Temperature Factor: {R1.Y_theta:.2f}")
 print(f"Reliability Factor: {R1.Y_Z:.2f}")
 
 # Output: Reliability Factor: 1.00
-print(f"Reliability Factor: {R1.Y_Z:.2f}")
 ```
 
 Would you be up for the challenge to perform the same analysis on gear **R3**? I'll leave to you as a practice!
@@ -202,6 +201,127 @@ The parameters involved are:
 To print out the calculated factors involved in the gear tooth pitting analysis, use the same logic as that shown for the gear tooth bending analysis performed on gear **R1** in the previous section.
 
 At this point, we conclude the section dedicated to the verification of gear design. In the next section, we'll verify the choice of bearings!
+
+## Bearing Choice Verification
+Similar to shaft design verification analysis, bearing choice verification consists of a **static analysis** and **fatigue analysis**. Contrary to shaft design verification analysis, we don't need to calculate the internal loads and stresses to go through the analyses. We only need to rely on the components of the reaction force produced by the bearing, a step we already performed in the [**1st Part**](https://ragheedhuneineh.com/posts/pygrtibx_tutorial1/ "PyGRITbx - Tutorial Series Part 1: May The Forces Resolve for You") of this tutorial series.
+
+### Static Analysis
+The static analysis for bearings consists of 2 parts:
+1) verification of the minimum load requisite
+2) calculation of the static safety factor
+
+The *requisite minimum load* derives from the fact that in certain applications, the bearing choice is determined by factors other than load. These factors can be related to a shaft diameter constraint, or a critical speed constraint. In applications where the bearing is subjected to light loads, failure mechanisms such as **skidding and smearing of raceways** or **cage damage** can prevail over fatigue.
+
+In general, the minimum load should follow the set of rules defined by the following simple equations:
+
+$$
+F_{rm} \ge 0.01C \text{ for ball bearings}
+$$
+
+$$
+F_{rm} \ge 0.02C \text{ for roller bearings}
+$$
+
+Where **C** is the dynamic basic load rating of the bearing.
+
+To calculate the static safety factor, we us the following formula:
+
+$$
+s_0 = \frac{C_0}{P_0}
+$$
+
+where:
+- $\bold{C_0}$: required basic static load rating
+- $\bold{P_0}$: equivalent static bearing load
+
+The required basic static load bearing is reported in the **SKF Catalogue** and is a property that we passed to the toolbox when defining the bearings. The equivalent static bearing load instead is calculated based on the radial and axial components of the reaction force produced by the bearing. The catalogue offers different possibilities for calculating this hypothetical load based on the bearing type and bearing arrangement. However, you don't need to deal with that as the toolbox will figure out this for you!
+
+### Fatigue Analysis: Bearing Life Estimation
+Contrary to the static analysis, the fatigue analysis does NOT deal with a safety factor calculation. Instead, it produces the estimated life of the bearing either in:
+- ***millions of cycles***
+$$
+L_{nm} = a_1 a_{SKF} \left( {\frac{C}{P}} \right)^p
+$$ 
+
+- ***operating hours***
+$$
+L_{nmh} = \frac{10^6}{60.n} L_{nm}
+$$
+
+Where:
+- $\bold{a_1}$: life adjustment factor for reliability
+- $\bold{a_{SKF}}$: coefficient based on contamination level, equivalent dynamic load, and viscosity ratio
+- $\bold{P}$: equivalent dynamic load
+- $\bold{p}$: exponent of the life equation
+
+**PyGRITbx** requires information about the reliability, contamination condition, oil of choice, and the $\bold{a_{SKF}}$ coefficient to calculate the estimated life of the bearing.
+
+Once the oil is chosen, we can define it as a python object as shown in the following code block:
+
+```python
+# Define Oil of Choice
+oil = pgt.Oil(name="ISO VG 100", temp=60, v1=15, v=45)
+```
+
+For the SKF coefficient, we need the contamination factor, the equivalent dynamic load, and the oil viscosity ratio as shown in [**Figure 3**](#figure-3).
+
+<figure id="figure-3">
+    <img src="figure3_aSKFGraph.png"
+    alt="SKF Coefficient Reference Graph"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 3 - SKF Coefficient Reference Graph</figcaption>
+</figure>
+
+We can obtain this information by executing the following code:
+
+```python
+# Bearing A
+# Contamination Factor
+A.calculateEtaC(condition="Slight contamination")
+print(f"Bearing A Contamination Factor: {A.eta_c:.2f}")
+
+# Output: Bearing A Contamination Factor: 0.40
+
+#-------------------------------------------------------
+
+# Equivalent Dynamic Load
+A.calculateEquivalentDynamicLoad()
+print(f"Bearing A Equivalent Dynamic Load: {A.P:.2f} [N]")
+
+# Output: Bearing A Equivalent Dynamic Load: 1635.01 [N]
+
+#-------------------------------------------------------
+
+# Oil Viscosity Ratio
+print(f"Oil '{oil.name}' Viscosity Ratio: {oil.k:.2f}")
+
+# Output: Oil 'ISO VG 100' Viscosity Ratio: 3.00
+```
+
+Once we obtain the SKF coefficient, we can then run the following code block on bearing **A** to perform the static and fatigue analysis and confirm the bearing choice.
+
+```python
+# Bearing A: Life Analysis
+A.performLifeAnalysis(rel=95, condition="Slight contamination", a_skf=2, oil=oil)
+```
+
+The output should look like [**Figure 4**](#figure-4).
+
+<figure id="figure-4">
+    <img src="figure4_bearingAOutput.png"
+    alt="Bearing A Life Analysis Output"
+    style="max-width: 100%; height: auto;">
+    <figcaption>Figure 4 - Bearing $\bold{A}$ Life Analysis Output</figcaption>
+</figure>
+
+For bearings **B**, **C**, and **D**, we can execute a similar code and obtain the corresponding results. I'll leave it to you as a challenge!
+
+## Final Words
+We can finally conclude this tutorial series with some final words. If you've made it this far, thanks for following along. I would like to stress that **PyGRITbx** is just a tool that can help you perform the analysis faster. This doesn't mean that you shouldn't understand the concepts and the theory behind the analyses. If anything, the tool can be properly used only if the user understands the concepts and the theory behind it, but doesn't want to waste time performing tedious calculations.
+
+Finally, I would like to ask for your kind feedback. Please reach out if you think I should change my writing style or the way I tend to explain things. If you find any bugs in the toolbox, I would really appreciate feedback so I (or we) can work on fixing it. If you have an idea that can be transformed into a feature, let me know so we can discuss it and work on adding it.
+
+Thank you!
 
 ## References
 - Richard G. Budynas and J. Keith Nisbett, *Shigley's Mechanical Engineering Design*, McGraw-Hill, 2006.
