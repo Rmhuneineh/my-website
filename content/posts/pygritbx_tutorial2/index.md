@@ -482,3 +482,4 @@ In the 3rd and last part, we will perform bending and wear analysis on gears **R
 ## References
 - Richard G. Budynas and J. Keith Nisbett, *Shigley's Mechanical Engineering Design*, McGraw-Hill, 2006.
 - SKF Group, *SKF Rolling Bearings Catalogue*, SKF. [SKF Rolling Bearings](https://www.skf.com/group/products/rolling-bearings)
+- [Tutorial Complete Code](https://github.com/Rmhuneineh/pygritbx/blob/main/tutorials/tutorial_1.ipynb "PyGRITbx Tutorial")

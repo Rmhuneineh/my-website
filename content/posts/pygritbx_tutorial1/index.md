@@ -12,7 +12,7 @@ tags: ["Machine Design"]
 ---
 
 ## Outline
-This blog post is the first part of a 3-part series. In this series, I would like to introduce you to my python toolbox with a tutorial based on a project given to mechanical engineering students following the course **"02SXJJM - Fundamentals of Machine Design"** at **Politecnico di Torino**. My best hope is that this series would serve as a guide for the reader in future projects concerning geargbox design validation. 
+This blog post is the first part of a 3-part series. In this series, I would like to introduce you to my python toolbox with a tutorial based on a project given to mechanical engineering students following the course **"02SXJJM - Fundamentals of Machine Design"** at **Politecnico di Torino**. My best hope is that this series would serve as a guide for the reader in future projects concerning geargbox design validation. The complete code for this tutorial can be found [**here**](https://github.com/Rmhuneineh/pygritbx/blob/main/tutorials/tutorial_1.ipynb "PyGRITbx Tutorial").
 
 In this part, you will learn how to:
 1) Install the toolbox along with the necessary tools.
@@ -879,3 +879,4 @@ With this, we conclude the first part of the gearbox components design verificat
 ## References
 - Richard G. Budynas and J. Keith Nisbett, *Shigley's Mechanical Engineering Design*, McGraw-Hill, 2006.
 - SKF Group, *SKF Rolling Bearings Catalogue*, SKF. [SKF Rolling Bearings](https://www.skf.com/group/products/rolling-bearings)
+- [Tutorial Complete Code](https://github.com/Rmhuneineh/pygritbx/blob/main/tutorials/tutorial_1.ipynb "PyGRITbx Tutorial")
