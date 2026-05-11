@@ -260,7 +260,7 @@ $$\sum \tau = - c \theta + \tau_{ext}(t) = I \ddot{\theta}$$
 Hence, the equation of motion for the SDOF torsional system under forced vibration can be expressed as:
 $$I \ddot{\theta} + c \theta = \tau_{ext}(t)$$
 
-This equation describes how the angular displacement of the rotating body evolves over time under the influence of both the restoring torque from the shaft's torsional stiffness and the external torque. The solution to this equation will allow us to predict the system's response under quasi-realistic operating conditions, which is essential for identifying any potential issues that may arise due to the forcing.
+This equation describes how the angular displacement of the rotating body evolves over time under the influence of both the restoring torque from the shaft's torsional stiffness and the external torque. The solution to this equation will allow us to predict the system's response under quasi-realistic operating conditions, which is essential for identifying any potential issues that may arise due to the forcing. I use the term "quasi-realistic" because the actual operating conditions involve additional complexities such as damping.
 
 #### Mathematical Trick
 
@@ -290,9 +290,9 @@ In fact, the choice of subscripts $\bold{G}$ and $\bold{P}$ is not arbitrary. Th
 
 #### The Particular Solution
 
-When solving for the general solution, we saw that it takes the form of sinusoidal functions or complex exponentials. However, the particular solution will depend on the form of the external forcing $\bold{\tau_{ext}(t)}$. Hence, to solve the system *analytically*, it's imperative to know the form of the external forcing in order to propose an appropriate form for the particular solution accordingly. In the case where the form of the external forcing is complicated enough to deny us from the pleasure of finding an analytical solution, numerical methods may be required to solve for the particular solution!
+When solving for the general solution, we saw that it takes the form of sinusoidal functions or complex exponentials. However, the particular solution will depend on the form of the external forcing $\bold{\tau_{ext}(t)}$. Hence, to solve the system *analytically*, we must know the form of the external forcing, a priori, in order to propose an appropriate form for the particular solution accordingly. In the case where the form of the external forcing is complicated enough to deny us from the pleasure of finding an analytical solution, numerical methods may be required to solve for the particular solution!
 
-For the remaining of this part of the series, we will focus on finding the analytical solution for different forms of external forcing.
+In the following sections of this part of the series, we will focus on finding the solution for different forms of external forcing, analytically when possible and numerically when not.
 
 ### Forced Vibration Analysis: Constant Torque
 
@@ -316,7 +316,9 @@ $$\theta_P(t) = \frac{\tau_0}{c}$$
 The complete solution for the forced vibration case with a constant external torque can be expressed as:
 $$\theta(t) = A \cos(\omega t) + B \sin(\omega t) + \frac{\tau_0}{c}$$
 
-This solution is very similar to that of the undamped free vibration case, with the addition of a constant term that represents an offset in the angular displacement due to the constant external torque applied. Thus, the system will oscillate around this new equilibrium position!
+This solution is very similar to that of the undamped free vibration case, with the addition of a constant term that represents an offset in the angular displacement due to the constant external torque applied. Thus, the system will oscillate around this new equilibrium position.
+
+Note that without accounting for the general solution, oscillation around the new equilibrium position would not be modeled and the response would be inaccurately represented as a constant angular displacement equal to $\mathbf{\frac{\tau_0}{c}}$, which is not the case in reality according to the measurements documented in the literature.
 
 Now, we can modify our Python code to simulate the time response of the system under a constant external torque. We will specifically modify the `simulate_time_response` method of our `SDOFTorsionalSystem`class to account for an external torque and implement the analytical solution for the constant torque case.
 
@@ -327,7 +329,7 @@ class SDOFTorsionalSystem:
 
     # Method to simulate the time response of the system
     # NOTE: modified to account for constant external torque
-    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, tau_ext=0):
+    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, load_type="constant", tau_ext=0):
         if self.omega_n is None:
             raise ValueError("Natural frequency is not defined. Please set inertia and stiffness.")
         
@@ -335,10 +337,10 @@ class SDOFTorsionalSystem:
         t = np.linspace(0, time_span, 1000)
         # Natural frequency
         omega_n = self.omega_n
-        if isinstance(tau_ext, (int, float)):
+        if load_type == "constant":
              tau_0 = tau_ext
         else:
-            raise ValueError("External torque must be a constant value (int or float).")
+            raise ValueError("Unsupported load type. Please specify 'constant' for constant external torque.")
         # Calculate the constants A and B based on initial conditions
         A = initial_angle - (tau_0 / self.c)  # Adjusting for the particular solution
         B = initial_velocity / omega_n
@@ -346,16 +348,17 @@ class SDOFTorsionalSystem:
         theta_t = (A * np.cos(omega_n * t) + B * np.sin(omega_n * t) + (tau_0 / self.c))
         return t, theta_t
 ```
-As you can see, we have added a new parameter `tau_ext` to the `simulate_time_response` method, which represents the constant external torque. We have also adjusted the calculation of the constant `A` and the solution `theta_t` to account for the particular solution corresponding to the constant torque. You can tell that the undamped free vibration is a special case of the forced vibration with a constant external torque, where $\tau_0 = 0$.
+We introduced 2 new parameters, `load_type` and `tau_ext`, to the `simulate_time_response` method, which account for the *type* and *profile* of the external torque, respectively. We have also adjusted the calculation of the constant `A` and the solution `theta_t` so as to include the particular solution corresponding to the constant torque. You can tell that the undamped free vibration is a special case of the forced vibration with a constant external torque, where $\tau_0 = 0$.
 
-Note that the `if isinstance(tau_ext, (int, float))` check is added to ensure that the external torque provided is a constant value, as the analytical solution we derived is only valid for constant external torques. If a non-constant external torque is provided, a ValueError will be raised for now.
+Note that the `if load_type == "constant"` check raises a ValueError in case the load type is not constant. This will be modified in the next sections as we introduce more types of external forcing, but for now, it serves as a safeguard to ensure that the method is used correctly.
 
 We can now modify a copy of the code block corresponding to the simulation of the time response to include a constant external torque:
 
 ```python
 # Simulate time response with a constant external torque
 tau_ext = 5  # Constant external torque in [N*m]
-t, theta_t = S.simulate_time_response(initial_angle=0, initial_velocity=0, time_span=time_span, tau_ext=tau_ext)
+t, theta_t = S.simulate_time_response(initial_angle=0, initial_velocity=0, time_span=10,
+                                        load_type="constant", tau_ext=tau_ext)
 
 # Plotting code remains the same as before
 ```
@@ -368,6 +371,75 @@ This will produce the graph shown in [**Figure 4**](#fig:time_response_constant_
 </figure>
 
 I suggest you to play around with initial conditions and the value of the constant external torque to see how they affect the time response of the system (you can use negative values as well for a response in the opposite direction).
+
+### Forced Vibration Analysis: Linear Torque Ramp
+
+Another common form of external excitation is a linear torque ramp, which can be expressed as:
+$$\tau_{ext}(t) = r t$$
+
+Where $\bold{r}$ is the rate of change of the torque with respect to time, expressed in $\bold{[N*m/s]}$. Substituting this into the equation for the particular solution gives us:
+$$I \ddot{\theta}\_P(t) + c \theta_P(t) = r t$$
+
+The easiest function $\bold{\theta_P(t)}$ to propose in this case is a first-order polynomial function, which can be expressed as:
+$$\theta_P(t) = \alpha t + \beta$$
+
+Substituting this into the equation for the particular solution gives us:
+$$I \cdot 0 + c (\alpha t + \beta) = r t$$
+
+Rearranging this equation gives us:
+$$c \alpha t + c \beta = r t$$
+
+Equating the coefficients of $t$ and the constant terms gives us two equations:
+$$c \alpha = r$$
+$$c \beta = 0$$
+
+Solving for $\alpha$ and $\beta$ gives us:
+$$\alpha = \frac{r}{c}$$
+$$\beta = 0$$
+
+Therefore, the particular solution for the case of a linear torque ramp is:
+$$\theta_P(t) = \frac{r}{c} t$$
+
+Hence, the complete solution for the forced vibration case with a linear torque ramp can be expressed as:
+$$\theta(t) = A \cos(\omega t) + B \sin(\omega t) + \frac{r}{c} t$$
+
+Can you already picture the response of the system subjected to this type of load? The system will exhibit oscillatory behavior around a linearly increasing equilibrium position, which is determined by the term $\frac{r}{c} t$. As time progresses, the equilibrium position will continue to increase, and the system will oscillate around this moving equilibrium position.
+
+To view this, we can modify, again, the `simulate_time_response` method to account for the linear torque ramp and implement the analytical solution for this case. Specifically, we will introduce a new load type, "linear", and modify the calculation of the particular solution accordingly.
+
+```python
+class SDOFTorsionalSystem:
+
+    # ... (previous code remains unchanged)
+
+    # Method to simulate the time response of the system
+    # NOTE: modified to account for linear torque ramp
+    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, load_type="constant", tau_ext=0):
+        if self.omega_n is None:
+            raise ValueError("Natural frequency is not defined. Please set inertia and stiffness.")
+        
+        # Time array
+        t = np.linspace(0, time_span, 1000)
+        # Natural frequency
+        omega_n = self.omega_n
+        if load_type == "constant":
+             tau_0 = tau_ext
+             particular_solution = tau_0 / self.c
+             theta_0 = particular_solution
+        elif load_type == "linear":
+            r = tau_ext
+            particular_solution = (r / self.c) * t
+            theta_0 = particular_solution[0]  # Initial value of the particular solution at t=0
+        else:
+            raise ValueError("Unsupported load type. Please specify 'constant' for constant external torque or 'linear' for linear torque ramp.")
+        
+        # Calculate the constants A and B based on initial conditions
+        A = initial_angle - theta_0  # Adjusting for the particular solution at t=0
+        B = initial_velocity / omega_n
+        # Time response using the analytical solution for the specified load type
+        theta_t = (A * np.cos(omega_n * t) + B * np.sin(omega_n * t) + particular_solution)
+        return t, theta_t
+```
 
 ### Conclusion
 
