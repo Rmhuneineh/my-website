@@ -117,7 +117,7 @@ $$\theta(t) = C e^{j \omega t} + D e^{-j \omega t}$$
 
 Where:
 - $\bold{C}$ is the initial angular displacement, expressed in $\bold{[rad]}$.
-- $\bold{D}$ is the initial angular velocity divided by $\bold{\omega}$, expressed in $\bold{[rad]}$.
+- $\bold{D}$ is the initial angular velocity divided by $\bold{\omega}$.
 - $\bold{j}$ is the imaginary unit, defined as: $\bold{j}^2 = -1$.
 - $\bold{\omega}$ is the angular frequency of the oscillation, which we will determine by substituting this proposed solution into the equation of motion, expressed in $\bold{[rad/s]}$.
 
@@ -148,7 +148,7 @@ $$\omega = \sqrt{\frac{c}{I}}$$
 The corresponding mode shape for this SDOF system can be expressed in terms of the complex exponential function as:
 $$\theta(t) = C e^{j \sqrt{\frac{c}{I}} t} + D e^{-j \sqrt{\frac{c}{I}} t}$$
 
-### Simple Python Code
+### Python Code: Undamped Free Vibration Analysis
 
 To illustrate the concepts we've discussed and get a hint of the coding style we will use to implement them in Python, we'll write a simple code snippet that calculates the natural frequency of a SDOF torsional system given its inertia and torsional stiffness. Moreover, we will simulate the time response of the system for a given set of initial conditions.
 
@@ -252,8 +252,123 @@ The above code will create the plot shown in [**Figure 3**](#fig:time_response),
     <figcaption>Figure 3 - Time Response of SDOF Torsional System</figcaption>
 </figure>
 
+### Forced Vibration Analysis: Theory
+
+In forced vibration analysis, we consider the presence of an external torque acting on the system $\mathbf{\tau_{ext}(t)}$. Therefore the summation of external torques becomes:
+$$\sum \tau = - c \theta + \tau_{ext}(t) = I \ddot{\theta}$$
+
+Hence, the equation of motion for the SDOF torsional system under forced vibration can be expressed as:
+$$I \ddot{\theta} + c \theta = \tau_{ext}(t)$$
+
+This equation describes how the angular displacement of the rotating body evolves over time under the influence of both the restoring torque from the shaft's torsional stiffness and the external torque. The solution to this equation will allow us to predict the system's response under quasi-realistic operating conditions, which is essential for identifying any potential issues that may arise due to the forcing.
+
+#### Mathematical Trick
+
+Before solving the forced vibration equation, I'd like to present you with a mathematical trick that will come in handy when solving this kind of equations. Imagine that the solution has the following form:
+$$\theta(t) = \theta_G(t) + \theta_P(t)$$
+
+Where $\bold{\theta_G(t)}$ is the solution we derived earlier for the undamped free vibration case::
+$$ \theta_G(t) = A \cos(\omega t) + B \sin(\omega t)$$
+
+and $\bold{\theta_P(t)}$ is another part of the solution that accounts for the presence of external forcing (we don't care about its form for now).
+
+Substituting this proposed solution into the forced vibration equation yields:
+$$I (\ddot{\theta}\_G(t) + \ddot{\theta}\_P(t)) + c (\theta_G(t) + \theta_P(t)) = \tau_{ext}(t)$$
+
+Rearranging this equation gives us:
+$$I \ddot{\theta}\_G(t) + c \theta_G(t) + I \ddot{\theta}\_P(t) + c \theta_P(t) = \tau_{ext}(t)$$
+
+Now, we can use the fact that $\bold{\theta_G(t)}$ is a solution to the undamped free vibration equation, which means that it satisfies the following equation:
+$$I \ddot{\theta}\_G(t) + c \theta_G(t) = 0$$
+
+Substituting this into the rearranged equation gives us:
+$$I \ddot{\theta}\_P(t) + c \theta_P(t) = \tau_{ext}(t)$$
+
+This is a much simpler equation to solve, as it only involves the part of the solution that accounts for the external forcing. Therefore, we can focus on solving this equation to find $\bold{\theta_P(t)}$, and then we can add it to $\bold{\theta_G(t)}$ to get the complete solution for the forced vibration case.
+
+In fact, the choice of subscripts $\bold{G}$ and $\bold{P}$ is not arbitrary. The subscript $\bold{G}$ stands for "general" or "homogeneous" solution, which represents the natural response of the system without any external forcing. The subscript $\bold{P}$ stands for "particular" solution, which represents the specific response of the system to the external forcing. This distinction is important because it allows us to separate the effects of the system's inherent dynamics from the effects of the external forces, making it easier to analyze and understand the behavior of the system under different conditions.
+
+#### The Particular Solution
+
+When solving for the general solution, we saw that it takes the form of sinusoidal functions or complex exponentials. However, the particular solution will depend on the form of the external forcing $\bold{\tau_{ext}(t)}$. Hence, to solve the system *analytically*, it's imperative to know the form of the external forcing in order to propose an appropriate form for the particular solution accordingly. In the case where the form of the external forcing is complicated enough to deny us from the pleasure of finding an analytical solution, numerical methods may be required to solve for the particular solution!
+
+For the remaining of this part of the series, we will focus on finding the analytical solution for different forms of external forcing.
+
+### Forced Vibration Analysis: Constant Torque
+
+The simplest form of forced excitation is a constant torque, which can be expressed as:
+$$\tau_{ext}(t) = \tau_0$$
+
+Substituting this into the equation for the particular solution gives us:
+$$I \ddot{\theta}\_P(t) + c \theta_P(t) = \tau_0$$
+
+The easiest function $\bold{\theta_P(t)}$ to propose in this case is a constant function, which can be expressed as:
+$$\theta_P(t) = \theta_0$$
+
+Substituting this into the equation for the particular solution gives us:
+$$I \cdot 0 + c \theta_0 = \tau_0$$
+
+Solving for $\theta_0$:
+$$\theta_0 = \frac{\tau_0}{c}$$
+Therefore, the particular solution for the case of a constant external torque is:
+$$\theta_P(t) = \frac{\tau_0}{c}$$
+
+The complete solution for the forced vibration case with a constant external torque can be expressed as:
+$$\theta(t) = A \cos(\omega t) + B \sin(\omega t) + \frac{\tau_0}{c}$$
+
+This solution is very similar to that of the undamped free vibration case, with the addition of a constant term that represents an offset in the angular displacement due to the constant external torque applied. Thus, the system will oscillate around this new equilibrium position!
+
+Now, we can modify our Python code to simulate the time response of the system under a constant external torque. We will specifically modify the `simulate_time_response` method of our `SDOFTorsionalSystem`class to account for an external torque and implement the analytical solution for the constant torque case.
+
+```python
+class SDOFTorsionalSystem:
+
+    # ... (previous code remains unchanged)
+
+    # Method to simulate the time response of the system
+    # NOTE: modified to account for constant external torque
+    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, tau_ext=0):
+        if self.omega_n is None:
+            raise ValueError("Natural frequency is not defined. Please set inertia and stiffness.")
+        
+        # Time array
+        t = np.linspace(0, time_span, 1000)
+        # Natural frequency
+        omega_n = self.omega_n
+        if isinstance(tau_ext, (int, float)):
+             tau_0 = tau_ext
+        else:
+            raise ValueError("External torque must be a constant value (int or float).")
+        # Calculate the constants A and B based on initial conditions
+        A = initial_angle - (tau_0 / self.c)  # Adjusting for the particular solution
+        B = initial_velocity / omega_n
+        # Time response using the analytical solution for constant torque
+        theta_t = (A * np.cos(omega_n * t) + B * np.sin(omega_n * t) + (tau_0 / self.c))
+        return t, theta_t
+```
+As you can see, we have added a new parameter `tau_ext` to the `simulate_time_response` method, which represents the constant external torque. We have also adjusted the calculation of the constant `A` and the solution `theta_t` to account for the particular solution corresponding to the constant torque. You can tell that the undamped free vibration is a special case of the forced vibration with a constant external torque, where $\tau_0 = 0$.
+
+Note that the `if isinstance(tau_ext, (int, float))` check is added to ensure that the external torque provided is a constant value, as the analytical solution we derived is only valid for constant external torques. If a non-constant external torque is provided, a ValueError will be raised for now.
+
+We can now modify a copy of the code block corresponding to the simulation of the time response to include a constant external torque:
+
+```python
+# Simulate time response with a constant external torque
+tau_ext = 5  # Constant external torque in [N*m]
+t, theta_t = S.simulate_time_response(initial_angle=0, initial_velocity=0, time_span=time_span, tau_ext=tau_ext)
+
+# Plotting code remains the same as before
+```
+
+This will produce the graph shown in [**Figure 4**](#fig:time_response_constant_torque), which illustrates the time response of the SDOF torsional system under a constant external torque. It is evident straight away that the system oscillates around a new equilibrium position, which is shifted from the original equilibrium position (the one corresponding to the undamped free vibration case) by an amount equal to $\frac{\tau_0}{c} = \frac{5}{10} = 0.5 [rad]$.
+
+<figure id="fig:time_response_constant_torque">
+    <img src="03_torVib.png" alt="Time Response of SDOF Torsional System with Constant External Torque">
+    <figcaption>Figure 4 - Time Response of SDOF Torsional System with Constant External Torque</figcaption>
+</figure>
+
+I suggest you to play around with initial conditions and the value of the constant external torque to see how they affect the time response of the system (you can use negative values as well for a response in the opposite direction).
+
 ### Conclusion
 
 In summary, we have derived the equation of motion for a single degree of freedom torsional system undergoing undamped free vibration and found that the natural frequency of the system is given by $\omega = \sqrt{\frac{c}{I}}$, based on two different approaches. The mode shape of the system is represented by the angular displacement $\theta(t)$, which oscillates at this natural frequency. This analysis provides a fundamental understanding of torsional vibrations in SDOF systems, which will serve as a basis for analyzing more complex multi-degree of freedom systems in the next section.
-
-## M
