@@ -107,8 +107,21 @@ $$-I \omega^2 + c = 0$$
 Rearranging this equation gives us the expression for the natural frequency of the system:
 $$\omega = \sqrt{\frac{c}{I}}$$
 
-This natural frequency $\mathbf{\omega}$ represents the frequency at which the system will oscillate when it is undergoing undamped free vibration. The corresponding mode shape for this SDOF system is simply the angular displacement $\theta(t)$, which can be expressed as:
-$$\theta(t) = A \cos(\sqrt{\frac{c}{I}} t) + B \sin(\sqrt{\frac{c}{I}} t)$$
+This natural frequency $\mathbf{\omega}$ represents the frequency at which the system will oscillate when it is undergoing undamped free vibration. To obtain the final form of $\mathbf{\theta(t)}$, we should calculate $\bold{A}$ and $\bold{B}$ in terms of the initial conditions.
+
+By substituting $t=0$ into the proposed solution, we can express $\bold{A}$ in terms of the initial angular displacement $\bold{\theta(0)}$:
+$$\theta(0) = A \cos(0) + B \sin(0) = A$$
+Thus, we have:
+$$A = \theta(0)$$
+
+To express $\bold{B}$ in terms of the initial angular velocity $\bold{\dot{\theta}(0)}$, we can differentiate the proposed solution with respect to time and then substitute $t=0$:
+$$\dot{\theta}(t) = -A \omega \sin(\omega t) + B \omega \cos(\omega t)$$
+$$\dot{\theta}(0) = -A \omega \sin(0) + B \omega \cos(0) = B \omega$$
+Thus, we have:
+$$B = \frac{\dot{\theta}(0)}{\omega}$$
+
+ The corresponding mode shape for this SDOF system is simply the angular displacement $\theta(t)$, which can be expressed as:
+$$\theta(t) = \theta(0) \cos(\sqrt{\frac{c}{I}} t) + \frac{\dot{\theta}(0)}{\omega} \sin(\sqrt{\frac{c}{I}} t)$$
 
 ### Exponentials: I Know You Love Them
 
@@ -147,6 +160,12 @@ $$\omega = \sqrt{\frac{c}{I}}$$
 
 The corresponding mode shape for this SDOF system can be expressed in terms of the complex exponential function as:
 $$\theta(t) = C e^{j \sqrt{\frac{c}{I}} t} + D e^{-j \sqrt{\frac{c}{I}} t}$$
+
+To calculate the constants $\bold{C}$ and $\bold{D}$ in terms of the initial conditions, we follow the same procedure as before and eventually end up with the following expressions:
+$$C = \frac{1}{2} \left( \theta(0) - j \frac{\dot{\theta}(0)}{\omega} \right)$$
+$$D = \frac{1}{2} \left( \theta(0) + j \frac{\dot{\theta}(0)}{\omega} \right)$$
+
+Clearly, the solution expressed in terms of complex exponentials is more complicated to grasp. Hence, we will adopt the solution expressed in terms of sine and cosine functions for the rest of this series, as it is easier to understand and visualize. However, keep in mind that these two solutions are coherent and equivalent, and you can use either of them to analyze the system's behavior as long as you are consistent in your choice.
 
 ### Python Code: Undamped Free Vibration Analysis
 
@@ -303,13 +322,13 @@ Substituting this into the equation for the particular solution gives us:
 $$I \ddot{\theta}\_P(t) + c \theta_P(t) = \tau_0$$
 
 The easiest function $\bold{\theta_P(t)}$ to propose in this case is a constant function, which can be expressed as:
-$$\theta_P(t) = \theta_0$$
+$$\theta_P(t) = \theta_{P}^{0}$$
 
 Substituting this into the equation for the particular solution gives us:
-$$I \cdot 0 + c \theta_0 = \tau_0$$
+$$I \cdot 0 + c \theta_{P}^{0} = \tau_0$$
 
-Solving for $\theta_0$:
-$$\theta_0 = \frac{\tau_0}{c}$$
+Solving for $\theta_{P}^{0}$:
+$$\theta_{P}^{0} = \frac{\tau_0}{c}$$
 Therefore, the particular solution for the case of a constant external torque is:
 $$\theta_P(t) = \frac{\tau_0}{c}$$
 
@@ -318,7 +337,11 @@ $$\theta(t) = A \cos(\omega t) + B \sin(\omega t) + \frac{\tau_0}{c}$$
 
 This solution is very similar to that of the undamped free vibration case, with the addition of a constant term that represents an offset in the angular displacement due to the constant external torque applied. Thus, the system will oscillate around this new equilibrium position.
 
-Note that without accounting for the general solution, oscillation around the new equilibrium position would not be modeled and the response would be inaccurately represented as a constant angular displacement equal to $\mathbf{\frac{\tau_0}{c}}$, which is not the case in reality according to the measurements documented in the literature.
+Note that without accounting for the general solution, oscillation around the new equilibrium position would not be modeled and the response would be inaccurately represented as a constant angular displacement equal to $\mathbf{\theta_{P}^{0}}$, which is not the case in reality according to the measurements documented in the literature.
+
+The calculation of the constants $\bold{A}$ and $\bold{B}$ in terms of the initial conditions follows the same procedure as before, but with the adjustment for the particular solution:
+$$A = \theta(0) - \frac{\tau_0}{c} = \theta(0) - \theta_{P}^{0}$$
+$$B = \frac{\dot{\theta}(0)}{\omega}$$
 
 Now, we can modify our Python code to simulate the time response of the system under a constant external torque. We will specifically modify the `simulate_time_response` method of our `SDOFTorsionalSystem`class to account for an external torque and implement the analytical solution for the constant torque case.
 
@@ -339,13 +362,17 @@ class SDOFTorsionalSystem:
         omega_n = self.omega_n
         if load_type == "constant":
              tau_0 = tau_ext
+             thetaP_0 = tau_0 / self.c
+             thetaP_t = thetaP_0 * np.ones_like(t)  # Particular solution for constant torque
         else:
             raise ValueError("Unsupported load type. Please specify 'constant' for constant external torque.")
         # Calculate the constants A and B based on initial conditions
-        A = initial_angle - (tau_0 / self.c)  # Adjusting for the particular solution
+        A = initial_angle - thetaP_0  # Adjusting for the particular solution
         B = initial_velocity / omega_n
+        # General solution for the homogeneous part
+        thetaG_t = A * np.cos(omega_n * t) + B * np.sin(omega_n * t)
         # Time response using the analytical solution for constant torque
-        theta_t = (A * np.cos(omega_n * t) + B * np.sin(omega_n * t) + (tau_0 / self.c))
+        theta_t = thetaG_t + thetaP_t
         return t, theta_t
 ```
 We introduced 2 new parameters, `load_type` and `tau_ext`, to the `simulate_time_response` method, which account for the *type* and *profile* of the external torque, respectively. We have also adjusted the calculation of the constant `A` and the solution `theta_t` so as to include the particular solution corresponding to the constant torque. You can tell that the undamped free vibration is a special case of the forced vibration with a constant external torque, where $\tau_0 = 0$.
@@ -405,6 +432,10 @@ $$\theta(t) = A \cos(\omega t) + B \sin(\omega t) + \frac{r}{c} t$$
 
 Can you already picture the response of the system subjected to this type of load? The system will exhibit oscillatory behavior around a linearly increasing equilibrium position, which is determined by the term $\frac{r}{c} t$. As time progresses, the equilibrium position will continue to increase, and the system will oscillate around this moving equilibrium position.
 
+For the calculation of the constants $\bold{A}$ and $\bold{B}$ in terms of the initial conditions, we follow the same procedure as before, but with the adjustment for the particular solution:
+$$A = \theta(0) - \frac{r}{c} \cdot 0 = \theta(0)$$
+$$B = \frac{\dot{\theta}(0) - \frac{r}{c}}{\omega}$$
+
 To view this, we can modify, again, the `simulate_time_response` method to account for the linear torque ramp and implement the analytical solution for this case. Specifically, we will introduce a new load type, "linear", and modify the calculation of the particular solution accordingly.
 
 ```python
@@ -424,23 +455,49 @@ class SDOFTorsionalSystem:
         omega_n = self.omega_n
         if load_type == "constant":
              tau_0 = tau_ext
-             particular_solution = tau_0 / self.c
-             theta_0 = particular_solution
+             thetaP_0 = tau_0 / self.c
+             thetaP_t = thetaP_0 * np.ones_like(t)  # Particular solution for constant torque
+             thetaPdot_0 = 0
         elif load_type == "linear":
             r = tau_ext
-            particular_solution = (r / self.c) * t
-            theta_0 = particular_solution[0]  # Initial value of the particular solution at t=0
+            alpha = r / self.c
+            beta = 0
+            thetaP_t = alpha * t + beta  # Particular solution for linear torque ramp
+            thetaP_0 = thetaP_t[0]  # Initial value of the particular solution at t=0
+            thetaPdot_0 = r / self.c  # Initial value of the derivative of the particular solution at t=0
         else:
             raise ValueError("Unsupported load type. Please specify 'constant' for constant external torque or 'linear' for linear torque ramp.")
         
         # Calculate the constants A and B based on initial conditions
-        A = initial_angle - theta_0  # Adjusting for the particular solution at t=0
-        B = initial_velocity / omega_n
+        A = initial_angle - thetaP_0  # Adjusting for the particular solution at t=0
+        B = (initial_velocity - thetaPdot_0) / omega_n
+        # General solution for the homogeneous part
+        thetaG_t = A * np.cos(omega_n * t) + B * np.sin(omega_n * t)
         # Time response using the analytical solution for the specified load type
-        theta_t = (A * np.cos(omega_n * t) + B * np.sin(omega_n * t) + particular_solution)
+        theta_t = thetaG_t + thetaP_t
         return t, theta_t
 ```
 
-### Conclusion
+Now, we can simulate the time response of the system under a linear torque ramp by calling the `simulate_time_response` method with the appropriate parameters:
 
-In summary, we have derived the equation of motion for a single degree of freedom torsional system undergoing undamped free vibration and found that the natural frequency of the system is given by $\omega = \sqrt{\frac{c}{I}}$, based on two different approaches. The mode shape of the system is represented by the angular displacement $\theta(t)$, which oscillates at this natural frequency. This analysis provides a fundamental understanding of torsional vibrations in SDOF systems, which will serve as a basis for analyzing more complex multi-degree of freedom systems in the next section.
+```python
+# Simulate time response with a linear torque ramp
+r = 50  # Rate of change of the torque in [N*m/s]
+t, theta_t = S.simulate_time_response(initial_angle=0, initial_velocity=0, time_span=10,
+                                        load_type="linear", tau_ext=r)
+
+# Plotting code remains the same as before
+```
+
+This will produce the graph shown in [**Figure 5**](#fig:time_response_linear_torque), which illustrates the time response of the SDOF torsional system under a linear torque ramp. As expected, the system exhibits oscillatory behavior around a linearly increasing equilibrium position, which is determined by the term $\frac{r}{c} t$.
+
+<figure id="fig:time_response_linear_torque">
+    <img src="04_torVib.png" alt="Time Response of SDOF Torsional System with Linear Torque Ramp">
+    <figcaption>Figure 5 - Time Response of SDOF Torsional System with Linear Torque Ramp</figcaption>
+</figure>
+
+Consider that this result is unrealistic in practice, as it assumes that the angular displacement increases indefinitely with time. However, it serves as a useful theoretical case to understand the behavior of the system under a linearly increasing external torque. In reality, there would be physical limitations that would prevent the angular displacement from increasing indefinitely, such as material yielding or failure, or the presence of damping that would eventually bring the system to a stop.
+
+Note also that the angular velocity of the system oscillates around a new equilibrium value offset from zero by an amount equal to $\frac{r}{c}$, which contributes to the unbounded increase in the angular displacement over time.
+
+Can you tell how the time response would look like if we have a combined load condition where both, a constant external torque and a linear torque ramp, are applied to the system simultaneously? I'll leave this as an exercise for you to solve!
