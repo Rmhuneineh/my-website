@@ -646,3 +646,98 @@ To visualize the effect of resonance, we can simulate the time response of the s
 Obviously, the amplitude of the response is continuously increasing with time, which is a clear indication of resonance. This highlights the importance of understanding the natural frequency of the system and how it interacts with the excitation frequency to avoid potential issues that may arise due to resonance.
 
 Try to play around with the excitation frequency and observe how it affects the time response of the system. We analyzed 2 generic cases and 1 specific case around the natural frequency of the system, but what happens at extremes? What happens when the excitation frequency is infintesimal or extremely high? (*spoiler alert: a shaft behaves as a low-pass filter*)
+
+## Forced Vibration Analysis: Arbitrary Excitation
+
+In the previous sections, we analyzed the response of the system to specific types of external excitation: constant torque, linear torque ramp, and harmonic excitation. However, in real-world scenarios, the external excitation may not always conform to these specific forms. Therefore, it is important to be able to analyze the response of the system to arbitrary external excitation. 
+
+In this case, the external excitation would be given to us in the form of a measurement coming from a torque meter, instead of an analytical expression. Hence, we would have a discrete set of data points representing the external torque as a function of time, which can be denoted as $\bold{\tau_{ext}(t_i)}$ for $i = 0, 1, ..., N-1$, where $\bold{N}$ is the number of data points.
+
+One could think of applying curve-fitting techniques to find an analytical expression that approximates the measured data, and then use that expression to solve for the particular solution. Another potential solution is the change of basis approach like Fourier transform (via FFT), which allows us to express the arbitrary excitation as a sum of harmonic excitations, and then calculate the particular solution for each harmonic component and sum them up to get the complete particular solution. However, these approaches may not always be feasible or accurate, especially if the measured data is noisy or has a complex structure. Therefore, a more practical approach to analyze the response of the system to arbitrary external excitation is to use numerical methods to solve the equation of motion directly, without the need for an analytical expression for the particular solution.
+
+### Finite Difference Method
+
+The simplest numerical method to solve the equation of motion is the finite difference method, which involves discretizing the time domain and approximating the derivatives in the equation of motion using finite differences. This allows us to iteratively calculate the angular displacement, velocity, and acceleration at each time step based on the previous values and the external excitation at that time step.
+
+Put simply, whether the external excitation is given by an analytical expression or a discrete set of data points, initial conditions are required to solve the equation of motion as we've seen in the previous sections in the case of analytical solutions. In case of numerical solutions, the initial angular displacement is used in the equation of motion to calculate the angular acceleration at the first time step as follows:
+$$\ddot{\theta}(t_0) = \frac{\tau_{ext}(t_0) - c \theta(t_0)}{I}$$
+
+Then, the angular velocity and displacement at the next time step can be calculated using finite difference approximations:
+$$\dot{\theta}(t_1) = \dot{\theta}(t_0) + \ddot{\theta}(t_0) \Delta t$$
+$$\theta(t_1) = \theta(t_0) + \dot{\theta}(t_0) \Delta t$$
+
+Where: $\bold{\Delta t} = t_1 - t_0$ is the time step.
+
+This process can be repeated iteratively for each subsequent time step to calculate the angular displacement, velocity and acceleration, thus obtaining an approximation of the time response of the system to the arbitrary external excitation.
+
+Let's see how sharp you are: have you noticed that the equations for the finite difference method don't contain any subscripts in regards to $\bold{\theta(t_i)}$? This means that we're solving for the complete solution, $\bold{\theta(t)}$, and **NOT** just the particular solution, $\bold{\theta_P(t)}$. This is because the excitation is a measurement signal, and as already mentioned, measurements have shown the frequency contribution related to the natural frequency of the system as well as the frequency contribution of any other source of excitation belonging to the system. Hence, we will be solving for the complete solution and the separation between the general and particular solutions would require a Fourier transform to quantify the contribution of each frequency separately.
+
+
+The code modification required to implement this approach urges to first check whether `load_type` is `"measurement"`. In case it is, then we would expect `tau_ext` to be a dictionary containing the `time` array $\bold{t_i}$ and the corresponding `load` array $\bold{\tau_{ext}(t_i)}$
+
+```python
+class SDOFTorsionalSystem:
+
+    # ... (previous code remains unchanged)
+    
+    # Method to simulate the time response of the system
+    # NOTE: modified to account for arbitrary "measurement" excitation
+    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, load_type="constant", tau_ext=0):
+        if self.omega_n is None:
+            raise ValueError("Natural frequency is not defined. Please set inertia and stiffness.")
+        
+        if load_type == "measurement":
+            # Time array
+            t = tau_ext['time']
+            # Torque array
+            tau_ti = tau_ext['load']
+            # Initialize array for angular displacement to zeros
+            theta = np.zeros_like(t)
+            # Initial conditions
+            theta[0] = initial_angle
+            theta_dot_i = initial_velocity
+            # Iteratively calculate the angular displacement at each time step
+            for i in range(len(t)-1):
+                # Calculate the angular acceleration using the equation of motion
+                theta_double_dot = (tau_ti[i] - self.c * theta[i]) / self.I
+                # Update angular velocity and displacement using finite difference approximation
+                dt = t[i+1] - t[i]
+                theta_dot_i = theta_dot_i + theta_double_dot * dt
+                theta[i+1] = theta[i] + theta_dot_i * dt
+        else:
+            # Time array
+            t = np.linspace(0, time_span, 1000)
+            # Natural frequency
+            omega_n = self.omega_n
+            if load_type == "constant":
+                 tau_0 = tau_ext
+                 thetaP_0 = tau_0 / self.c
+                 thetaP_t = thetaP_0 * np.ones_like(t)  # Particular solution for constant torque
+                 thetaPdot_0 = 0
+            elif load_type == "linear":
+                r = tau_ext
+                alpha = r / self.c
+                beta = 0
+                thetaP_t = alpha * t + beta  # Particular solution for linear torque ramp
+                thetaP_0 = thetaP_t[0]  # Initial value of the particular solution at t=0
+                thetaPdot_0 = r / self.c  # Initial value of the derivative of the particular solution at t=0
+            elif load_type == "harmonic":
+                tau_0 = tau_ext['amplitude']
+                omega_f = tau_ext['frequency'] * 2 * np.pi  # Convert frequency from Hz to rad/s
+                A_P = tau_0 / (self.c - self.I * omega_f**2)
+                B_P = 0
+                thetaP_t = A_P * np.sin(omega_f * t) + B_P * np.cos(omega_f * t)  # Particular solution for harmonic excitation
+                thetaP_0 = thetaP_t[0]  # Initial value of the particular solution at t=0
+                thetaPdot_0 = A_P * omega_f * np.cos(omega_f * t)[0]  # Initial value of the derivative of the particular solution at t=0
+            else:
+                raise ValueError("Unsupported load type. Please specify 'constant' for constant external torque, 'linear' for linear torque ramp, or 'harmonic' for harmonic excitation.")
+
+            # Calculate the constants A and B based on initial conditions
+            A = initial_angle - thetaP_0  # Adjusting for the particular solution at t=0
+            B = (initial_velocity - thetaPdot_0) / omega_n  # Adjusting for the derivative of the particular solution at t=0
+            # General solution for the homogeneous part
+            thetaG_t = A * np.cos(omega_n * t) + B * np.sin(omega_n * t)
+            # Time response using the analytical solution for the specified load type
+            theta_t = thetaG_t + thetaP_t
+        return t, theta_t
+```
