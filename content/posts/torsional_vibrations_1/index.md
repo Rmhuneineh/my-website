@@ -12,20 +12,23 @@ categories: ["Mechanical Engineering", "Programming Tutorial"]
 tags: ["Machine Design"]
 ---
 
+***This post covers the fundamentals of torsional vibrations, including the derivation of equations of motion and the use of Python for modeling and analysis. The application is specific to gearbox testing bench setups.***
+
+
 ## Introduction
-The subject of torsional vibrations is crucial in the design and analysis of rotating machinery, particularly in applications such as gearboxes. This stems from the fact that the rotating components in these systems (e.g., shafts) transmit power under twisting conditions due to their finite stiffness; thus, variations in the transmitted power may lead to torsional vibrations given by the coiling-uncoiling behavior of the shafts. In this series, the aim is to provide a comprehensive overview of torsional vibrations, including the derivation of equations of motion and the use of Python for numerical analysis. The focus will be on practical applications, specifically in the context of gearbox testing bench setups. (Don't worry, we'll start with the basics and build up to more complex concepts, so you can follow along even if you're new to this topic.)
+The subject of torsional vibrations is crucial in the design and analysis of rotating machinery, particularly in applications such as gearboxes. This stems from the fact that the rotating components in these systems (e.g., shafts) transmit power under twisting conditions due to their finite stiffness; thus, variations in the transmitted power may lead to torsional vibrations given by the coiling-uncoiling behavior of the shafts. In this series, the aim is to provide a comprehensive overview of torsional vibrations, including the derivation of equations of motion and the use of Python for modeling and analysis. Along the way, we will build our own solver for the equations of motion, which will allow us to simulate the system's response under various conditions and to gain insights into the dynamics of torsional vibrations in the context of gearbox testing bench setups.
 
 Unlike linear vibrations, torsional vibrations involve the twisting of a shaft or a system of shafts. This type of vibration can lead to significant issues such as fatigue failure, noise, and reduced performance if not properly analyzed and mitigated. On test bench setups in particular, understanding torsional vibrations is essential for accurate testing and validation of gearbox designs, for the test bench itself introduces additional dynamics that may affect the results.
 
-A typical example of how the test bench can introduce additional dynamics is through the use of adaption transmissions. Adaption transmissions are often used to connect the input and/or output of the gearbox being tested to the dynos, with the aim of matching the speed and torque requirements that otherwise would not be met by connecting the gearbox directly to the dynos. However, these adaption transmissions introduce modes of excitation that are not present in the actual application, and may lead to inaccurate results, such as premature failure of the gearbox or inaccurate estimation of its performance, if not properly accounted for in the analysis. Hence, it is but imperative to understand the dynamics of torsional vibrations in the context of test bench setups, and to use appropriate modeling and analysis techniques to ensure accurate results.
+A typical example of how the test bench can introduce additional dynamics is through the use of adaption transmissions. Adaption transmissions are often used to connect the input and/or output of the gearbox being tested to the dynos, with the aim of matching the speed and torque requirements that otherwise would not be met by connecting the gearbox directly to the dynos. However, these adaption transmissions introduce modes of excitation that are not present in the actual application, and may lead to inaccurate results, such as premature failure of the gearbox or inaccurate estimation of its performance, if not properly accounted for in the analysis. Hence, it is but imperative to understand the dynamics of torsional vibrations in the context of test bench setups, and to use appropriate modeling and analysis techniques to ensure accurate results. Note that sometimes adaption tranmissions are used for packaging purposes only, where a very compact test unit denies one from the possibility to connect the gearbox directly to the dynos.
 
 More often than not, the analysis of torsional vibrations is performed following a systematic approach including the following steps:
 1. **Undamped Free Vibration Analysis**: This step involves deriving the equations of motion for the system under the assumption of no damping and no external forces. The goal is to determine the natural frequencies and mode shapes of the system, which are fundamental properties that characterize its vibrational behavior.
 2. **Identification of Excitation Sources**: Once the natural frequencies and mode shapes are known, the next step is to identify potential sources of excitation within the operating speed range of the system. This involves analyzing the system's components and their interactions to determine if any of them can excite the natural frequencies, leading to resonance conditions.
 3. **Campbell Diagram Analysis**: The Campbell diagram is a powerful tool for visualizing the relationship between the natural frequencies of the system and the excitation frequencies. By plotting the natural frequencies against the operating speed, we can identify potential resonance conditions and take appropriate measures to mitigate them.
-4. **Forced Vibration Analysis**: In this step, we analyze the system's response to known, external forces, such as those generated by the dynos. This involves solving the equations of motion with the inclusion of forcing terms, which can be done either numerically or analytically, depending on the complexity of the system and the nature of the forces involved. The goal is to predict the system's response under realistic operating conditions and to identify any potential issues that may arise due to the forcing.
+4. **Forced Vibration Analysis**: In this step, we analyze the system's response to known, external forces, such as those generated by the dynos, gears, etc. This involves solving the equations of motion with the inclusion of forcing terms, which can be done either numerically or analytically, depending on the complexity of the system and the nature of the forces involved. The goal is to predict the system's response under realistic operating conditions and to identify any potential issues that may arise due to the forcing.
 
-In this part, we will focus on applying the systematic approach on a single degree of freedom (SDOF) torsional system. However, given that rigid body modes (e.g. free rotation) are not present in SDOF systems, we will not be able to identify any sources of excitation or plot the Campbell diagram. Therefore, our analysis will be limited to the first and last steps of the systematic approach, which are the undamped free vibration analysis and the forced vibration analysis. The aim is to provide a solid foundation for understanding the dynamics of torsional vibrations in SDOF systems, which will be essential for analyzing more complex multi-degree of freedom (MDOF) systems in the next part(s).
+In this part, we will focus on applying the systematic approach on a single degree of freedom (SDOF) torsional system. However, given that rigid body modes (e.g. free rotation) are not present in SDOF torsional systems, we will not bother identifying any sources of excitation or plot the Campbell diagram. Therefore, our analysis will be limited to the first and last steps of the systematic approach, which are the undamped free vibration analysis and the forced vibration analysis. The aim is to provide a solid foundation for understanding the dynamics of torsional vibrations in SDOF torsional systems and develop a mini-solver for such systems, which will be essential for analyzing more complex multi-degree of freedom (MDOF) systems in the next part(s).
 
 ## Single Degree of Freedom (SDOF) Torsional System
 
@@ -47,9 +50,9 @@ Therefore, to derive the equation of motion of the rotating body, we rely on the
 </figure>
 
 Where:
-- $\theta$ is the angular displacement of the rotating body,
-- $\dot{\theta}$ is the angular velocity of the rotating body, and
-- $\ddot{\theta}$ is the angular acceleration of the rotating body
+- $\theta$ is the angular displacement of the rotating body expressed in $\bold{[rad]}$,
+- $\dot{\theta}$ is the angular velocity of the rotating body expressed in $\bold{[rad/s]}$, and
+- $\ddot{\theta}$ is the angular acceleration of the rotating body expressed in $\bold{[rad/s^2]}$
 
 around the shaft's axis of rotation.
 
@@ -115,8 +118,8 @@ Thus, we have:
 $$A = \theta(0)$$
 
 To express $\bold{B}$ in terms of the initial angular velocity $\bold{\dot{\theta}(0)}$, we can differentiate the proposed solution with respect to time and then substitute $t=0$:
-$$\dot{\theta}(t) = -A \omega \sin(\omega t) + B \omega \cos(\omega t)$$
-$$\dot{\theta}(0) = -A \omega \sin(0) + B \omega \cos(0) = B \omega$$
+$$\dot{\theta}(t) = -A \omega_n \sin(\omega_n t) + B \omega_n \cos(\omega_n t)$$
+$$\dot{\theta}(0) = -A \omega_n \sin(0) + B \omega_n \cos(0) = B \omega_n$$
 Thus, we have:
 $$B = \frac{\dot{\theta}(0)}{\omega_n}$$
 
@@ -283,7 +286,7 @@ This equation describes how the angular displacement of the rotating body evolve
 
 #### Mathematical Trick
 
-Before solving the forced vibration equation, I'd like to present you with a mathematical trick that will come in handy when solving this kind of equations. Imagine that the solution has the following form:
+Before solving the forced vibration equation, I'd like to present you with a mathematical trick that will come in handy when solving this kind of equations. Let's assume that the solution has the following form:
 $$\theta(t) = \theta_G(t) + \theta_P(t)$$
 
 Where $\bold{\theta_G(t)}$ is the solution we derived earlier for the undamped free vibration case::
@@ -303,7 +306,7 @@ $$I \ddot{\theta}\_G(t) + c \theta_G(t) = 0$$
 Substituting this into the rearranged equation gives us:
 $$I \ddot{\theta}\_P(t) + c \theta_P(t) = \tau_{ext}(t)$$
 
-This is a much simpler equation to solve, as it only involves the part of the solution that accounts for the external forcing. Therefore, we can focus on solving this equation to find $\bold{\theta_P(t)}$, and then we can add it to $\bold{\theta_G(t)}$ to get the complete solution for the forced vibration case.
+One could argue that the proposed solution doesn't change much as the equation we dervied differs from the original equation only by the subscript $\bold{P}$. I understand the confusion as I suffered from it myself; however, the proposed solution derives from measurements performed and documented in literature. In those measurements, it has been shown that no matter the excitation form, the natural frequency derived from free undamped vibrations is always present in the system's response. This means that the solution $\bold{\theta_G(t)}$ **must** be present in the complete solution regardless of the form of excitation. Given that this solution doesn't account for the external forcing, another solution added to it is hence proposed, offering the possibility to account for the external forcing without affecting the presence of the natural frequency in the system's response. This is the mathematical trick that allows us to solve the forced vibration equation by breaking it down into two simpler equations.
 
 In fact, the choice of subscripts $\bold{G}$ and $\bold{P}$ is not arbitrary. The subscript $\bold{G}$ stands for "general" or "homogeneous" solution, which represents the natural response of the system without any external forcing. The subscript $\bold{P}$ stands for "particular" solution, which represents the specific response of the system to the external forcing. This distinction is important because it allows us to separate the effects of the system's inherent dynamics from the effects of the external forces, making it easier to analyze and understand the behavior of the system under different conditions.
 
@@ -330,7 +333,7 @@ $$I \cdot 0 + c \theta_{P}^{0} = \tau_0$$
 Solving for $\theta_{P}^{0}$:
 $$\theta_{P}^{0} = \frac{\tau_0}{c}$$
 Therefore, the particular solution for the case of a constant external torque is:
-$$\theta_P(t) = \frac{\tau_0}{c}$$
+$$\theta_P(t) = \theta_{P}^{0} = \frac{\tau_0}{c}$$
 
 The complete solution for the forced vibration case with a constant external torque can be expressed as:
 $$\theta(t) = A \cos(\omega_n t) + B \sin(\omega_n t) + \frac{\tau_0}{c}$$
@@ -342,6 +345,8 @@ Note that without accounting for the general solution, oscillation around the ne
 The calculation of the constants $\bold{A}$ and $\bold{B}$ in terms of the initial conditions follows the same procedure as before, but with the adjustment for the particular solution:
 $$A = \theta(0) - \frac{\tau_0}{c} = \theta(0) - \theta_{P}^{0}$$
 $$B = \frac{\dot{\theta}(0)}{\omega_n}$$
+
+The calculation of the constants reveals that the ***amplitude*** of oscillation is affected by the presence of the constant external torque, shifting it by an amount that is proportional to the magnitude of the constant external torque.
 
 Now, we can modify our Python code to simulate the time response of the system under a constant external torque. We will specifically modify the `simulate_time_response` method of our `SDOFTorsionalSystem`class to account for an external torque and implement the analytical solution for the constant torque case.
 
@@ -375,9 +380,9 @@ class SDOFTorsionalSystem:
         theta_t = thetaG_t + thetaP_t
         return t, theta_t
 ```
-We introduced 2 new parameters, `load_type` and `tau_ext`, to the `simulate_time_response` method, which account for the *type* and *profile* of the external torque, respectively. We have also adjusted the calculation of the constant `A` and the solution `theta_t` so as to include the particular solution corresponding to the constant torque. You can tell that the undamped free vibration is a special case of the forced vibration with a constant external torque, where $\tau_0 = 0$.
+We introduced 2 new parameters, `load_type` and `tau_ext`, to the `simulate_time_response` method, which account for the *type* and *profile* of the external torque, respectively. We have also adjusted the calculation of the constant `A` and the solution `theta_t` so as to include the particular solution corresponding to the constant torque.
 
-Note that the `if load_type == "constant"` check raises a ValueError in case the load type is not constant. This will be modified in the next sections as we introduce more types of external forcing, but for now, it serves as a safeguard to ensure that the method is used correctly.
+Note that the `if load_type == "constant"` check raises a ValueError in case the load type is not `"constant"`. This will be modified in the next sections as we introduce more types of external forcing, but for now, it serves as a safeguard to ensure that the method is used correctly.
 
 We can now modify a copy of the code block corresponding to the simulation of the time response to include a constant external torque:
 
@@ -615,21 +620,21 @@ t, theta_t = S.simulate_time_response(initial_angle=0, initial_velocity=0, time_
 # Plotting code remains the same as before
 ```
 
-This will produce the graph shown in [**Figure 6**](#fig:time_response_harmonic_excitation), which illustrates the time response of the SDOF torsional system under a harmonic excitation. The response exhibits oscillatory behavior with two frequency components: the natural frequency $\bold{\omega_n}$ and the excitation frequency $\bold{\omega_f}$. Depending on the relationship between these two frequencies, the system may exhibit resonance, leading to a significant increase in amplitude.
+This will produce the graph shown in [**Figure 6**](#fig:time_response_harmonic_excitation), which illustrates the time response of the SDOF torsional system under a harmonic excitation. The response exhibits oscillatory behavior with two frequency components: the natural frequency $\bold{\omega_n}$ and the excitation frequency $\bold{\omega_f}$.
 
 <figure id="fig:time_response_harmonic_excitation">
     <img src="05_torVib.png" alt="Time Response of SDOF Torsional System with Harmonic Excitation">
     <figcaption>Figure 6 - Time Response of SDOF Torsional System with Harmonic Excitation</figcaption>
 </figure>
 
-I think this is the most interesting plot in this part of the series as it is not so easy to predict the behavior of the system just by looking at the equation of motion. The interplay between the natural frequency and the excitation frequency can lead to a wide range of responses, from simple oscillations to complex patterns. If we, for example, change the excitation frequency to $7 [Hz]$, we will observe a completely different response, as shown in [**Figure 7**](#fig:time_response_harmonic_excitation_7Hz).
+I think this is the most interesting plot in this part of the series as it is not so easy to predict the behavior of the system just by looking at the equation of motion. The interplay between the natural frequency and the excitation frequency can lead to a wide range of responses, from simple oscillations to complex patterns. For example, changing the excitation frequency to $7 [Hz]$ will result in a completely different response, as shown in [**Figure 7**](#fig:time_response_harmonic_excitation_7Hz).
 
 <figure id="fig:time_response_harmonic_excitation_7Hz">
     <img src="06_torVib.png" alt="Time Response of SDOF Torsional System with Harmonic Excitation at 7 Hz">
     <figcaption>Figure 7 - Time Response of SDOF Torsional System with Harmonic Excitation at 7 Hz</figcaption>
 </figure>
 
-Mind that it's not just the frequency of the response that changes, but also the maximum amplitude, eventhough that characteristic remained unaltered in the excitation signal! This is a clear indication of the complex dynamics of the system and how sensitive it can be to changes in the excitation frequency. However, we should've expected a change in the amplitude of the response since the constant $B$ in the general solution depends on the excitation frequency, as has been demonstrated earlier.
+Mind that it's not just the frequency of the response that changes, but also the maximum amplitude, eventhough that characteristic remained unaltered in the excitation signal! This is a clear indication of the complex dynamics of the system and how sensitive it can be to changes in the excitation frequency. However, we should've expected a change in the amplitude of the response since the constant $\bold{B}$ in the general solution depends on the excitation frequency, as has been demonstrated earlier.
 
 To visualize the effect of resonance, we can simulate the time response of the system for a an excitation frequency in the vicinity of the natural frequency. For example, if we set the excitation frequency to `f_excitation = 10/2/np.pi-1e-3`, which is close to the natural frequency of the system, we will observe a significant increase in amplitude, as shown in [**Figure 8**](#fig:time_response_harmonic_excitation_5Hz).
 
