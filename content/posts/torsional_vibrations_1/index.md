@@ -824,3 +824,8 @@ In the next parts, we will see how to **fully** apply the same systematic approa
 For now, I leave you with the appendix where we refactor the code and generalize the analytical solver to account for any polynomial excitation and any harmonic exitation.
 
 Stay tuned =)
+
+## References
+- Mark A. Corbo & Stanley B. Malansoki, 1996, [**"Practical Design Against Torsional Vibration"**](https://dyrobes.com/paper/practical-design-against-torsional-vibration/ "Practical Design Against Torsional Vibration")
+- Ewins, D.J., "Modal Testing: Theory, Practice and Application (Mechanical Engineering Research Studies: Engineering Dynamics Series)"
+- [**Jupyter Notebook With Code**](https://github.com/Rmhuneineh/my-website/blob/main/content/posts/torsional_vibrations_1/00_torVib.ipynb "Jupyter Notebook")
