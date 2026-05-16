@@ -806,3 +806,21 @@ Try to modify the last code snippet to compare the analytical and numerical solv
     <img src="09_torVib.png" alt="Time Response of SDOF Torsional System Subjected to Hammer Test">
     <figcaption>Figure 10 - Time Response of SDOF Torsional System Subjected to Hammer Test</figcaption>
 </figure>
+
+## Conclusion
+
+To sum it up, in this part of the series, we introduced a systematic approach to model and analyze torsional systems. We started with the single degree of freedom (SDOF) system and represented it with a rotating component characterized by its intertia, and a torsional spring (shaft) characterized by its torsional stiffness.
+
+Using these characteristics, we drew the free body diagram of the rotating component and, following Newton's second law, derived the equation of motion of the system without any external load beyond the restoring torque from the shaft. This allowed us to discover the general solution of the system, which describes the motion of the system as a function of time when undergoing undamped free vibrations.
+
+Moreover, the solution presented to us a characteristic frequency of the SDOF torsional system: *the natural frequency*. This is the frequency the system will oscillate at when subjected to undamped free vibrations, always.
+
+We then moved our analysis from free vibrations to forced vibrations. There, we derived a new form of the complete solution where an additional term, called the *particular solution*, appeared along with the general solution to account for the external forces. We solved for the particular solution under different external load conditions: constant external torque, linear torque ramp, harmonic torque excitation, and arbitrary measurement torque.
+
+We ended up developing our own mini-solver which solves the system analytically for first 3 forms and numerically for the last.
+
+In the next parts, we will see how to **fully** apply the same systematic approach for multi-degree of freedom (MDOF) torsional systems. Along the way, we will build a similar mini-solver for MDOF torsional systems subjected to forced vibrations!
+
+For now, I leave you with the appendix where we refactor the code and generalize the analytical solver to account for any polynomial excitation and any harmonic exitation.
+
+Stay tuned =)
