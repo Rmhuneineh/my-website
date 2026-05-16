@@ -883,32 +883,8 @@ Based on this, we will modify the code so that it takes in `load_type` as `"poly
 ```python
 class SDOFTorsionalSystem:
 
-     # ... (previous code remains unchanged)
+    # ... (previous code remains unchanged)
 
-     # Method to simulate the time response of the system
-    # NOTE: modified to account for any polynomial function
-    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, load_type="poly", tau_ext=np.array([0], dtype=np.float16)):
-        if self.omega_n is None:
-            raise ValueError("Natural frequency is not defined. Please set inertia and stiffness.")
-        
-        if load_type == "measurement":
-            # Time array
-            t = tau_ext['time']
-            # Torque array
-            tau_ti = tau_ext['load']
-            # Initialize array for angular displacement to zeros
-            theta_t = np.zeros_like(t)
-            # Initial conditions
-            theta_t[0] = initial_angle
-            theta_dot_i = initial_velocity
-            # Iteratively calculate the angular displacement at each time step
-            for i in range(len(t)-1):
-                # Calculate the angular acceleration using the equation of motion
-                theta_double_dot = (tau_ti[i] - self.c * theta_t[i]) / self.I
-                # Update angular velocity and displacement using finite difference approximation
-                dt = t[i+1] - t[i]
-                theta_dot_i = theta_dot_i + theta_double_dot * dt
-                theta_t[i+1] = theta_t[i] + theta_dot_i * dt
         else:
             # Time array
             t = np.linspace(0, time_span, 1000)
@@ -929,25 +905,9 @@ class SDOFTorsionalSystem:
                     thetaPdot_0 = thetaP_i[-2] # Linear term yields initial condition of theta_dot
                 else:
                     thetaPdot_0 = 0 # For free vibrations or constant external load
-            elif load_type == "harmonic":
-                tau_0 = tau_ext['amplitude']
-                omega_f = tau_ext['frequency'] * 2 * np.pi  # Convert frequency from Hz to rad/s
-                A_P = tau_0 / (self.c - self.I * omega_f**2)
-                B_P = 0
-                thetaP_t = A_P * np.sin(omega_f * t) + B_P * np.cos(omega_f * t)  # Particular solution for harmonic excitation
-                thetaP_0 = thetaP_t[0]  # Initial value of the particular solution at t=0
-                thetaPdot_0 = A_P * omega_f * np.cos(omega_f * t)[0]  # Initial value of the derivative of the particular solution at t=0
-            else:
-                raise ValueError("Unsupported load type. Please specify 'constant' for constant external torque, 'linear' for linear torque ramp, or 'harmonic' for harmonic excitation.")
-
-            # Calculate the constants A and B based on initial conditions
-            A = initial_angle - thetaP_0  # Adjusting for the particular solution at t=0
-            B = (initial_velocity - thetaPdot_0) / omega_n  # Adjusting for the derivative of the particular solution at t=0
-            # General solution for the homogeneous part
-            thetaG_t = A * np.cos(omega_n * t) + B * np.sin(omega_n * t)
-            # Time response using the analytical solution for the specified load type
-            theta_t = thetaG_t + thetaP_t
-        return t, theta_t
+    
+    # ... (previous code remains unchanged)
+            
 ```
 
 We can now excite the system with the following 6th order polynomial as shown in the code block that follows it:
@@ -969,3 +929,123 @@ And the time response of the system subjected to this load is shown in [**Figure
 With this feature, our mini-solver is capable of analytically calculating the complete solution of the system subjected under a load of the form of a polynomial of any order. Reckon we can do the same for the harmonic excitation?
 
 ### All Harmonics
+
+Similar to the polynomials, we can define harmonic excitations as summations of different frequencies, one on top of another. An external load governed by harmonic excitations takes the general form shown in the following formula:
+$$\tau_{ext}(t) = \sum_{i=0}^{i=n}A_i \cdot sin(\omega_i \cdot t) + \sum_{j=0}^{j=m}B_j \cdot cos(\omega_j \cdot t)$$
+
+Therefore, the particular solution will take the same form and will be represented as:
+$$\theta_P(t) = \sum_{i=0}^{i=n}\theta_{s,i} \cdot sin(\omega_i \cdot t) + \sum_{j=0}^{j=m}\theta_{c,j} \cdot cos(\omega_j \cdot t)$$
+
+Calculating the complete solution practically means calculating all the values of $\bold{\theta_{s,i}}$ and $\bold{\theta_{c,i}}$.
+
+The second derivative is:
+$$\ddot{\theta}\_P(t) = -\sum_{i=0}^{i=n}\theta_{s,i} \cdot \omega_i^2 \cdot sin(\omega_i \cdot t) - \sum_{j=0}^{j=m}\theta_{c,j} \cdot \omega_j^2 \cdot cos(\omega_j \cdot t)$$
+
+Substitution in the equation of motion yields:
+$$\sum_{i=0}^{i=n}(c - I \cdot \omega_i^2) \cdot \theta_{s,i} \cdot sin(\omega_i \cdot t) + \sum_{j=0}^{j=m}(c - I \cdot \omega_j^2) \cdot \theta_{c,j} \cdot cos(\omega_j \cdot t) = \sum_{i=0}^{i=n}A_i \cdot sin(\omega_i \cdot t) + \sum_{j=0}^{j=m}B_j \cdot cos(\omega_j \cdot t)$$
+
+By comparing both sides, we get:
+$$\theta_{s,i} = \frac{A_i}{c - I \cdot \omega_i^2}$$
+$$\theta_{c,j} = \frac{B_j}{c - I \cdot \omega_j^2}$$
+
+For sinusoidal harmonic excitation, we had previously agreed that `tau_ext` would be a dictionary with an `"amplitude"` and a `"frequency"` key. Each of these keys contained one value corresponding to one sinusoidal term. Now, we will modify this so that we accept two differnt keys `"sin"` and `"cos"`. The value of each of those keys is yet another dictionary with the keys `"amplitude"` and `"frequency"` as before; however, the values of each of those latter keys will be an array containing the amplitudes and frequencies of all sinusoidal or cosinusoidal terms.
+
+```python
+class SDOFTorsionalSystem:
+
+    # ... (previous code remains unchanged)
+
+            elif load_type == "harmonic":
+                # Initialize Particular Solution
+                thetaP_t = np.zeros_like(t)
+                # Sin terms
+                if 'sin' in tau_ext:
+                    A_s = tau_ext['sin']['amplitude']
+                    omega_s = tau_ext['sin']['frequency'] * 2 * np.pi # Convert frequency from Hz to rad/s
+                    if len(A_s) != len(omega_s):
+                        raise Exception("Sin terms: amplitudes and freuencies must have the same length.")
+                    theta_s_i = np.zeros_like(A_s) # Sin terms of particular solution initialization
+                    for i, (A_i, omega_i) in enumerate(zip(A_s, omega_s)):
+                        theta_s_i[i] = A_i / (self.c - self.I * omega_i ** 2) # Apply derived formula
+                        thetaP_t = thetaP_t + theta_s_i[i] * np.sin(omega_i * t) # Add sin terms
+                    thetaPdot_0 = np.sum(theta_s_i)  # Initial value of the derivative of the particular solution at t=0
+                else:
+                    thetaPdot_0 = 0
+                # Cos terms
+                if 'cos' in tau_ext:
+                    B_c = tau_ext['cos']['amplitude']
+                    omega_c = tau_ext['cos']['frequency'] * 2 * np.pi # Convert frequency from Hz to rad/s
+                    if len(B_c) != len(omega_c):
+                        raise Exception("Cos terms: amplitudes and freuencies must have the same length.")
+                    theta_c_j = np.zeros_like(B_c) # Cos terms of particular solution initialization
+                    for j, (B_j, omega_j) in enumerate(zip(B_c, omega_c)):
+                        theta_c_j[j] = B_j / (self.c - self.I * omega_j ** 2) # Apply derived formula
+                        thetaP_t = thetaP_t + theta_c_j[j] * np.cos(omega_j * t) # Add cos terms
+                    thetaP_0 = np.sum(theta_c_j)  # Initial value of the particular solution at t=0
+                else:
+                    thetaP_0 = 0
+
+    # ... (previous code remains unchanged)
+
+```
+
+In the following an example to understand how to use this code producing the graph [**Figure 12**](#fig:time_response_harmonic_combined).
+
+```python
+# Simulate time response for mixed harmonics
+S = SDOFTorsionalSystem(inertia=I, stiffness=c)
+sin_load = {'amplitude': np.linspace(1,2,5), 'frequency': np.linspace(1,4,5)}
+cos_load = {'amplitude': np.linspace(0.4, 1.2,10), 'frequency': np.linspace(8,9, 10)}
+tau = {'sin': sin_load, 'cos': cos_load}
+
+time_span = 10  # Time span for simulation in [s]
+t, theta_t = S.simulate_time_response(time_span=time_span, load_type="harmonic", tau_ext=tau)
+
+# Construct load
+load = np.zeros_like(t)
+for key in tau:
+        for A, om in zip(tau[key]['amplitude'], tau[key]['frequency']):
+            if key == 'sin':
+                load = load + A * np.sin(om*t)
+            elif key == 'cos':
+                load = load + A * np.cos(om*t)
+
+# Plotting the time response
+fig, axes = plt.subplots(4, 1, figsize=(15, 10))
+fig.suptitle('Time Response of SDOF Torsional System', fontsize=16)
+# Angular Displacement vs Time
+axes[0].plot(t, theta_t, label='Angular Displacement')
+axes[0].set_xlabel('Time [s]')
+axes[0].set_ylabel('Angular Displacement [rad]')
+axes[0].set_title('Angular Displacement vs Time')
+axes[0].grid(True)
+
+# Angular Velocity vs Time
+angular_velocity = np.gradient(theta_t, t)
+axes[1].plot(t, angular_velocity, label='Angular Velocity', color='orange')
+axes[1].set_xlabel('Time [s]')
+axes[1].set_ylabel('Angular Velocity [rad/s]')
+axes[1].set_title('Angular Velocity vs Time')
+axes[1].grid(True)
+
+# Angular Acceleration vs Time
+angular_acceleration = np.gradient(angular_velocity, t)
+axes[2].plot(t, angular_acceleration, label='Angular Acceleration', color='green')
+axes[2].set_xlabel('Time [s]')
+axes[2].set_ylabel('Angular Acceleration [rad/s^2]')
+axes[2].set_title('Angular Acceleration vs Time')
+axes[2].grid(True)
+
+# Plot Load
+axes[3].plot(t, load, label='Load')
+axes[3].set_xlabel('Time [s]')
+axes[3].set_ylabel('Load [N.m]')
+axes[3].set_title('Load vs Time')
+axes[3].grid(True)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+```
+
+<figure id="fig:time_response_harmonic_combined">
+    <img src="11_torVib.png" alt="Time Response of SDOF Torsional System Subjected to Combined Harmonic Excitation">
+    <figcaption>Figure 12 - Time Response of SDOF Torsional System Subjected to Combined Harmonic Excitation</figcaption>
+</figure>
