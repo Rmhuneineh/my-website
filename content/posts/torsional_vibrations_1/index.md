@@ -829,3 +829,124 @@ Stay tuned =)
 - Mark A. Corbo & Stanley B. Malansoki, 1996, [**"Practical Design Against Torsional Vibration"**](https://dyrobes.com/paper/practical-design-against-torsional-vibration/ "Practical Design Against Torsional Vibration")
 - Ewins, D.J., "Modal Testing: Theory, Practice and Application (Mechanical Engineering Research Studies: Engineering Dynamics Series)"
 - [**Jupyter Notebook With Code**](https://github.com/Rmhuneineh/my-website/blob/main/content/posts/torsional_vibrations_1/00_torVib.ipynb "Jupyter Notebook")
+
+## Appendix
+
+### All Polynomials
+
+Throughout the article, the main focus is understanding the fundamentals of torsional vibrations, with the sole application being on single degree of freedom (SDOF) systems. It was also very important to portray how to translate that knowledge into coding. This allowed us to develop the mini-solver which can calculate the complete solution given a set of initial conditions and external torque.
+
+For constant external torque, linear torque ramp, and sinusoidal harmonic torque, we obtain the solution analytically. For any other type of load, the solver offers the possibility to calculate the complete solution numerically. In the latter case, the load is provided as a *"measurement"* with its time array.
+
+The constant external torque and the linear torque ramp belong to the family of polynomials, whereby the former is a *0th* order polynomial and the latter is a *1st* order polynomial. As a refresher, a polynomial of the ***"nth"*** order having ***"x"*** as its variable looks like this:
+$$p_n(x) = \sum_{i=0}^{i=n}{a_i \cdot x^{n-i}} = a_0 \cdot x^n + a_1 \cdot x^{n-1} + ...$$
+
+One could see that for the *0th* order polynomial, we have $\bold{n=0}$ and thus the polynomial is simply the constant $\bold{a_0}$. For the *1st* order polynomial, we have $\bold{n=1}$ and the polynomial is $\bold{a_0 \cdot x + a_1}$. This means that we can find a unique representation for the these two load types and avoid separating them in two different `if-statements` in our code!
+
+Adopting this representation, we could modify our solver so that it calculates the complete solution for any polynomial, instead of having to derive every single case and adding a special `if-statement` for it. In this case, the external load will look like this:
+$$\tau_{ext}(t) = \sum_{i=0}^{i=n} \tau_i \cdot t^{n-i}$$
+
+Substituting this in the equation of the particular solution:
+$$I  \cdot \ddot{\theta}_{P} + c \cdot \theta_P = \sum_{i=0}^{i=n} \tau_i \cdot t^{n-i}$$
+
+We already estasblished that the particular solution has the same for as that of the external force; therefore:
+$$\theta_P(t) = \sum_{i=0}^{i=n}\theta_i \cdot t^{n-i}$$
+
+Calculating the complete solution in this case translates to calculating all the values of $\bold{\theta_i}$. We can do that by substituting this form of the solution into the equation of motion and comparing the coefficients of the terms on the left-hand with those on the right-hand side.
+
+To substitute this reqpresentation into the equation of motion, we have to calculate the second derivative:
+$$\dot{\theta}_{P}(t) = \sum_{i=0}^{i=n-1}(n-i) \cdot \theta_i \cdot t^{n-i-1}$$
+$$\ddot{\theta}_{P}(t) = \sum_{i=0}^{i=n-2}(n-i) \cdot (n-i-1) \cdot \theta_i \cdot t^{n-i-2}$$
+
+Notice that with each derivative, the upper bounday of the summation decreases by 1. This is because the derivative of the last constant term is null, thus decreasing the total number of terms and the order of the polynomial!
+
+Before substituting this representation in the equation of motion, there's one more trick we have to apply. It would be very helpful to have the same exponent of $\bold{t}$ across all the terms in the equation. Currently this is true for $\bold{\theta_P}$ and $\bold{\tau_{ext}}$ but not for $\bold{\ddot{\theta}_P}$. To achieve this, we must add $\bold{2}$ to the boundaries of the summation and substitute $\bold{i}$ by $\bold{i-2}$. The final form of $\bold{\ddot{\theta}_P(t)}$ becomes:
+$$\ddot{\theta}_P(t) = \sum_{i=2}^{i=n}(n-i+2) \cdot (n-i+1) \cdot \theta_{i-2} \cdot t^{n-i}$$
+
+Substituting the final form in the equation of motion yields the following:
+$$I \cdot \sum_{i=2}^{i=n}{(n-i+2) \cdot (n-i+1) \cdot \theta_{i-2} \cdot t^{n-i}} + c \cdot \sum_{i=0}^{i=n}{\theta_i \cdot t^{n-i}} = \sum_{i=0}^{i=n} {\tau_i \cdot t^{n-i}}$$
+
+For comparison, we have to separate the terms in 2 ranges of $\bold{i}$:
+1. $i \in [0, 1]$
+$$c \cdot {\theta_i \cdot t^{n-i}} = \tau_i \cdot t^{n-i}$$
+for $\bold{t>0}$:
+$$\theta_i = \frac{\tau_i}{c}$$
+
+2. $i \in [2, n]$
+$$I \cdot (n-i+2) \cdot (n-i+1) \cdot \theta_{i-2} \cdot t^{n-i} + c \cdot \theta_i \cdot t^{n-i} = \tau_i \cdot t^{n-i}$$
+
+for $t>0$:
+$$\theta_i = \frac{\tau_i - I \cdot (n-i+2) \cdot (n-i+1) \cdot \theta_{i-2}}{c}$$
+
+Based on this, we will modify the code so that it takes in `load_type` as `"poly"` and the corresponding `tau_ext` will be an array of the coefficients $\bold{\tau_i}$. Hence, the code will now look like this:
+
+```python
+class SDOFTorsionalSystem:
+
+     # ... (previous code remains unchanged)
+
+     # Method to simulate the time response of the system
+    # NOTE: modified to account for any polynomial function
+    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, load_type="poly", tau_ext=np.array([0], dtype=np.float16)):
+        if self.omega_n is None:
+            raise ValueError("Natural frequency is not defined. Please set inertia and stiffness.")
+        
+        if load_type == "measurement":
+            # Time array
+            t = tau_ext['time']
+            # Torque array
+            tau_ti = tau_ext['load']
+            # Initialize array for angular displacement to zeros
+            theta_t = np.zeros_like(t)
+            # Initial conditions
+            theta_t[0] = initial_angle
+            theta_dot_i = initial_velocity
+            # Iteratively calculate the angular displacement at each time step
+            for i in range(len(t)-1):
+                # Calculate the angular acceleration using the equation of motion
+                theta_double_dot = (tau_ti[i] - self.c * theta_t[i]) / self.I
+                # Update angular velocity and displacement using finite difference approximation
+                dt = t[i+1] - t[i]
+                theta_dot_i = theta_dot_i + theta_double_dot * dt
+                theta_t[i+1] = theta_t[i] + theta_dot_i * dt
+        else:
+            # Time array
+            t = np.linspace(0, time_span, 1000)
+            # Natural frequency
+            omega_n = self.omega_n
+            if load_type == "poly":
+                n = len(tau_ext) - 1 # Polynomial Order
+                thetaP_i = np.zeros_like(tau_ext)
+                thetaP_t = np.zeros_like(t)
+                for i, tau_i in enumerate(tau_ext):
+                    if i < 2:
+                        thetaP_i[i] = tau_i / self.c # Equation of coefficient for i in [0, 1]
+                    else:
+                        thetaP_i[i] = (tau_i - self.I*(n-i+2)*(n-i+1)*thetaP_i[i-2]) / self.c # Equation of coefficient for i in [2, n]
+                    thetaP_t = thetaP_t + thetaP_i[i] * t ** (n-i) # Equation of particular solution as summation of
+                thetaP_0 = thetaP_i[-1] # Constant term yields initital condition of theta
+                if n > 0:
+                    thetaPdot_0 = thetaP_i[-2] # Linear term yields initial condition of theta_dot
+                else:
+                    thetaPdot_0 = 0 # For free vibrations of constant external load
+            elif load_type == "harmonic":
+                tau_0 = tau_ext['amplitude']
+                omega_f = tau_ext['frequency'] * 2 * np.pi  # Convert frequency from Hz to rad/s
+                A_P = tau_0 / (self.c - self.I * omega_f**2)
+                B_P = 0
+                thetaP_t = A_P * np.sin(omega_f * t) + B_P * np.cos(omega_f * t)  # Particular solution for harmonic excitation
+                thetaP_0 = thetaP_t[0]  # Initial value of the particular solution at t=0
+                thetaPdot_0 = A_P * omega_f * np.cos(omega_f * t)[0]  # Initial value of the derivative of the particular solution at t=0
+            else:
+                raise ValueError("Unsupported load type. Please specify 'constant' for constant external torque, 'linear' for linear torque ramp, or 'harmonic' for harmonic excitation.")
+
+            # Calculate the constants A and B based on initial conditions
+            A = initial_angle - thetaP_0  # Adjusting for the particular solution at t=0
+            B = (initial_velocity - thetaPdot_0) / omega_n  # Adjusting for the derivative of the particular solution at t=0
+            # General solution for the homogeneous part
+            thetaG_t = A * np.cos(omega_n * t) + B * np.sin(omega_n * t)
+            # Time response using the analytical solution for the specified load type
+            theta_t = thetaG_t + thetaP_t
+        return t, theta_t
+```
+
