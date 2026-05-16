@@ -847,21 +847,21 @@ Adopting this representation, we could modify our solver so that it calculates t
 $$\tau_{ext}(t) = \sum_{i=0}^{i=n} \tau_i \cdot t^{n-i}$$
 
 Substituting this in the equation of the particular solution:
-$$I  \cdot \ddot{\theta}_{P} + c \cdot \theta_P = \sum_{i=0}^{i=n} \tau_i \cdot t^{n-i}$$
+$$I \cdot \ddot{\theta}\_{P} + c \cdot \theta_P = \sum_{i=0}^{i=n} \tau_i \cdot t^{n-i}$$
 
-We already estasblished that the particular solution has the same for as that of the external force; therefore:
+We already estasblished that the particular solution has the same form as that of the external force; therefore:
 $$\theta_P(t) = \sum_{i=0}^{i=n}\theta_i \cdot t^{n-i}$$
 
 Calculating the complete solution in this case translates to calculating all the values of $\bold{\theta_i}$. We can do that by substituting this form of the solution into the equation of motion and comparing the coefficients of the terms on the left-hand with those on the right-hand side.
 
-To substitute this reqpresentation into the equation of motion, we have to calculate the second derivative:
-$$\dot{\theta}_{P}(t) = \sum_{i=0}^{i=n-1}(n-i) \cdot \theta_i \cdot t^{n-i-1}$$
-$$\ddot{\theta}_{P}(t) = \sum_{i=0}^{i=n-2}(n-i) \cdot (n-i-1) \cdot \theta_i \cdot t^{n-i-2}$$
+To substitute this representation into the equation of motion, we have to calculate the second derivative:
+$$\dot{\theta}\_{P}(t) = \sum_{i=0}^{i=n-1}(n-i) \cdot \theta_i \cdot t^{n-i-1}$$
+$$\ddot{\theta}\_{P}(t) = \sum_{i=0}^{i=n-2}(n-i) \cdot (n-i-1) \cdot \theta_i \cdot t^{n-i-2}$$
 
 Notice that with each derivative, the upper bounday of the summation decreases by 1. This is because the derivative of the last constant term is null, thus decreasing the total number of terms and the order of the polynomial!
 
-Before substituting this representation in the equation of motion, there's one more trick we have to apply. It would be very helpful to have the same exponent of $\bold{t}$ across all the terms in the equation. Currently this is true for $\bold{\theta_P}$ and $\bold{\tau_{ext}}$ but not for $\bold{\ddot{\theta}_P}$. To achieve this, we must add $\bold{2}$ to the boundaries of the summation and substitute $\bold{i}$ by $\bold{i-2}$. The final form of $\bold{\ddot{\theta}_P(t)}$ becomes:
-$$\ddot{\theta}_P(t) = \sum_{i=2}^{i=n}(n-i+2) \cdot (n-i+1) \cdot \theta_{i-2} \cdot t^{n-i}$$
+Before substituting this representation in the equation of motion, there's one more trick we have to apply. It would be very helpful to have the same exponent of $\bold{t}$ across all the terms in the equation. Currently this is true for $\bold{\theta_P}$ and $\bold{\tau_{ext}}$ but not for $\bold{\ddot{\theta}\_P}$. To achieve this, we must add $\bold{2}$ to the boundaries of the summation and substitute $\bold{i}$ by $\bold{i-2}$. The final form of $\bold{\ddot{\theta}\_P}$ becomes:
+$$\ddot{\theta}\_P(t) = \sum_{i=2}^{i=n}(n-i+2) \cdot (n-i+1) \cdot \theta_{i-2} \cdot t^{n-i}$$
 
 Substituting the final form in the equation of motion yields the following:
 $$I \cdot \sum_{i=2}^{i=n}{(n-i+2) \cdot (n-i+1) \cdot \theta_{i-2} \cdot t^{n-i}} + c \cdot \sum_{i=0}^{i=n}{\theta_i \cdot t^{n-i}} = \sum_{i=0}^{i=n} {\tau_i \cdot t^{n-i}}$$
@@ -928,7 +928,7 @@ class SDOFTorsionalSystem:
                 if n > 0:
                     thetaPdot_0 = thetaP_i[-2] # Linear term yields initial condition of theta_dot
                 else:
-                    thetaPdot_0 = 0 # For free vibrations of constant external load
+                    thetaPdot_0 = 0 # For free vibrations or constant external load
             elif load_type == "harmonic":
                 tau_0 = tau_ext['amplitude']
                 omega_f = tau_ext['frequency'] * 2 * np.pi  # Convert frequency from Hz to rad/s
@@ -950,3 +950,22 @@ class SDOFTorsionalSystem:
         return t, theta_t
 ```
 
+We can now excite the system with the following 6th order polynomial as shown in the code block that follows it:
+$$\tau_{ext}(t) = 0.0009 \cdot t^6 + 0.002 \cdot t^5 + 0.07 \cdot t^4 + 0.3 \cdot t^3 + 5 \cdot t^2 + 12 \cdot t + 100$$
+
+```python
+# Simulate time response for 6th order polynomial
+time_span = 10  # Time span for simulation in [s]
+t, theta_t = S.simulate_time_response(time_span=time_span, load_type="poly", tau_ext=np.array([9e-4, 2e-3, 0.07, 0.3, 5, 12, 100], dtype=np.float16))
+```
+
+And the time response of the system subjected to this load is shown in [**Figure 11**](#fig:time_response_polynomial_6thOrder).
+
+<figure id="fig:time_response_polynomial_6thOrder">
+    <img src="10_torVib.png" alt="Time Response of SDOF Torsional System Subjected to 6th Order Polynomial Load">
+    <figcaption>Figure 11 - Time Response of SDOF Torsional System Subjected to 6th Order Polynomial Load</figcaption>
+</figure>
+
+With this feature, our mini-solver is capable of analytically calculating the complete solution of the system subjected under a load of the form of a polynomial of any order. Reckon we can do the same for the harmonic excitation?
+
+### All Harmonics
