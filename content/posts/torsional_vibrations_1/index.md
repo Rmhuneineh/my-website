@@ -5,7 +5,7 @@ date: 2026-05-07T20:31:13+02:00
 author: "Ragheed"
 excerpt: ""
 description: "This post covers the fundamentals of torsional vibrations, including the derivation of equations of motion and the use of Python for numerical analysis. The application is specific to gearbox testing bench setups."
-draft: true
+draft: false
 math: true
 toc: true
 categories: ["Mechanical Engineering", "Programming Tutorial"]
@@ -930,7 +930,7 @@ With this feature, our mini-solver is capable of analytically calculating the co
 
 ### All Harmonics
 
-Similar to the polynomials, we can define harmonic excitations as summations of different frequencies, one on top of another. An external load governed by harmonic excitations takes the general form shown in the following formula:
+Similar to the polynomials, we can define harmonic excitations as summations of terms containing different frequency components, one on top of the other. An external load governed by harmonic excitations takes the general form shown in the following formula:
 $$\tau_{ext}(t) = \sum_{i=0}^{i=n}A_i \cdot sin(\omega_i \cdot t) + \sum_{j=0}^{j=m}B_j \cdot cos(\omega_j \cdot t)$$
 
 Therefore, the particular solution will take the same form and will be represented as:
@@ -941,14 +941,14 @@ Calculating the complete solution practically means calculating all the values o
 The second derivative is:
 $$\ddot{\theta}\_P(t) = -\sum_{i=0}^{i=n}\theta_{s,i} \cdot \omega_i^2 \cdot sin(\omega_i \cdot t) - \sum_{j=0}^{j=m}\theta_{c,j} \cdot \omega_j^2 \cdot cos(\omega_j \cdot t)$$
 
-Substitution in the equation of motion yields:
+Substitution in the equation of motion and rearranging the terms yields:
 $$\sum_{i=0}^{i=n}(c - I \cdot \omega_i^2) \cdot \theta_{s,i} \cdot sin(\omega_i \cdot t) + \sum_{j=0}^{j=m}(c - I \cdot \omega_j^2) \cdot \theta_{c,j} \cdot cos(\omega_j \cdot t) = \sum_{i=0}^{i=n}A_i \cdot sin(\omega_i \cdot t) + \sum_{j=0}^{j=m}B_j \cdot cos(\omega_j \cdot t)$$
 
 By comparing both sides, we get:
 $$\theta_{s,i} = \frac{A_i}{c - I \cdot \omega_i^2}$$
 $$\theta_{c,j} = \frac{B_j}{c - I \cdot \omega_j^2}$$
 
-For sinusoidal harmonic excitation, we had previously agreed that `tau_ext` would be a dictionary with an `"amplitude"` and a `"frequency"` key. Each of these keys contained one value corresponding to one sinusoidal term. Now, we will modify this so that we accept two differnt keys `"sin"` and `"cos"`. The value of each of those keys is yet another dictionary with the keys `"amplitude"` and `"frequency"` as before; however, the values of each of those latter keys will be an array containing the amplitudes and frequencies of all sinusoidal or cosinusoidal terms.
+For sinusoidal harmonic excitation, we had previously agreed that `tau_ext` would be a dictionary with an `"amplitude"` key and a `"frequency"` key. Each of those keys contained one value corresponding to one sinusoidal term. Now, we will modify this so that we accept two differnt keys `"sin"` and `"cos"`. The value of each of those keys is yet another dictionary with the keys `"amplitude"` and `"frequency"` as before; however, the values of each of those latter keys will be an array containing the amplitudes and frequencies of all sinusoidal or cosinusoidal terms.
 
 ```python
 class SDOFTorsionalSystem:
@@ -1049,3 +1049,5 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     <img src="11_torVib.png" alt="Time Response of SDOF Torsional System Subjected to Combined Harmonic Excitation">
     <figcaption>Figure 12 - Time Response of SDOF Torsional System Subjected to Combined Harmonic Excitation</figcaption>
 </figure>
+
+I hope you enjoyed it =)
