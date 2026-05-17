@@ -284,7 +284,7 @@ $$I \ddot{\theta} + c \theta = \tau_{ext}(t)$$
 
 This equation describes how the angular displacement of the rotating body evolves over time under the influence of both the restoring torque from the shaft's torsional stiffness and the external torque. The solution to this equation will allow us to predict the system's response under quasi-realistic operating conditions, which is essential for identifying any potential issues that may arise due to the forcing. I use the term "quasi-realistic" because the actual operating conditions involve additional complexities such as damping.
 
-#### Mathematical Trick
+### Mathematical Trick
 
 Before solving the forced vibration equation, I'd like to present you with a mathematical trick that will come in handy when solving this kind of equations. Let's assume that the solution has the following form:
 $$\theta(t) = \theta_G(t) + \theta_P(t)$$
@@ -310,7 +310,7 @@ One could argue that the proposed solution doesn't change much as the equation w
 
 In fact, the choice of subscripts $\bold{G}$ and $\bold{P}$ is not arbitrary. The subscript $\bold{G}$ stands for "general" or "homogeneous" solution, which represents the natural response of the system without any external forcing. The subscript $\bold{P}$ stands for "particular" solution, which represents the specific response of the system to the external forcing. This distinction is important because it allows us to separate the effects of the system's inherent dynamics from the effects of the external forces, making it easier to analyze and understand the behavior of the system under different conditions.
 
-#### The Particular Solution
+### The Particular Solution
 
 When solving for the general solution, we saw that it takes the form of sinusoidal functions or complex exponentials. However, the particular solution will depend on the form of the external forcing $\bold{\tau_{ext}(t)}$. Hence, to solve the system *analytically*, we must know the form of the external forcing, a priori, in order to propose an appropriate form for the particular solution accordingly. In the case where the form of the external forcing is complicated enough to deny us from the pleasure of finding an analytical solution, numerical methods may be required to solve for the particular solution!
 
