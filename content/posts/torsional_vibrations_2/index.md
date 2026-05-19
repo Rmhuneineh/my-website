@@ -60,54 +60,96 @@ Rearranging the terms so as to serparate $\bold{\theta_1}$ from $\bold{\theta_2}
 $$I_1 \cdot \ddot{\theta}\_1 + c \cdot \theta_1 - c \cdot \theta_2 = 0$$
 $$I_2 \cdot \ddot{\theta}\_2 + c \cdot \theta_2 - c \cdot \theta_1 = 0$$
 
-This set of second order differential equations represents a coupled system. The two equations are coupled together through the terms $\bold{c \cdot \theta_2}$ and $\bold{c \cdot \theta_1}$. This means that the motion of one body affects the motion of the other body, and vice versa. One could think of of moving those terms to the right-hand side and solve each equation as if it were a SDOF forced vibration case, as we saw in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"); however, this approach does not lead to a closed-form solution. Think of it as attempting to find the particular solution of one of the responses using the particular solution of the other as the external torque, but to get the particular solution of the other you'd need the particular solution of the first as an external torque: $\bold{\infty}$ **loop**.
+This is a coupled system: the motion of each body directly influences the motion ofthe other through the terms $\bold{c \cdot \theta_2}$ and $\bold{c \cdot \theta_1}$. One natural instinct would be to  move those  coupling terms to the right-hand side and treat each equation as a SDOF forced vibration problem, as we did in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"). This, however, leads to an ${\infty}$ loop: to solve for $\bold{\theta_1}$ you need $\bold{\theta2}$, and  to solve for $\bold{\theta2}$ you need $\bold{\theta_1}$.
 
-Thus, for an attempt to solve the system of equations, we'd need to think of 2 functions, one for each response, that would satisfy the conditions presented. Reckon trigonometry or complex exponentials would answer our call this time as well? Opting for the trigonometric form, a solution would look like this:
-$$\theta(t) = A \cdot sin(\omega t) + B \cdot cos(\omega t)$$
+We therefore need a smarter approach. As in the SDOF case, we propose a harmonic solution for each degree of freedom:
+$$\theta(t) = A \cdot cos(\omega t) + B \cdot sin(\omega t)$$
 
-The second derivative is simply:
-$$\ddot{\theta}(t) = -A \cdot \omega^2 \cdot sin(\omega t) - B \cdot \omega^2 \cdot cos(\omega t)$$
+The second derivative is:
+$$\ddot{\theta}(t) = -A \cdot \omega^2 \cdot cos(\omega t) - B \cdot \omega^2 \cdot sin(\omega t)$$
 
-In essence, the second derivative is proportional to the solution itself:
+which menas the second derivative is simply proportional to the solution itself
 $$\ddot{\theta}(t) = - \omega^2 \cdot \theta(t)$$
 
-For simplicity, denote: $\bold{\Theta = \theta(t)}$
-
-Substituting this in the set of equations derived earlier, we get:
+Denoting $\bold{\Theta = \theta(t)}$ for brevity and substituting this into the equations of motion:
 $$-I_1 \cdot \omega_n^2 \cdot \Theta_1 + c \cdot \Theta_1 - c \cdot \Theta_2 = 0$$
 
 $$-I_2 \cdot \omega_n^2 \cdot \Theta_2 + c \cdot \Theta_2 - c \cdot \Theta_1 = 0$$
 
-Rearranging the first equation, we get:
+Rearranging the first equation:
 $$\Theta_2 = \frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1$$
 
-Substituting this in the second equation, we get:
-$$-I_2 \cdot \omega_n^2 \cdot (\frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1) + c \cdot (\frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1) - c \cdot \Theta_1 = 0$$
+Substituting into the second equation:
+$$-I_2 \cdot \omega_n^2 \cdot \left(\frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1 \right) + c \cdot \left(\frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1 \right) - c \cdot \Theta_1 = 0$$
 
-For $\bold{\Theta_1 \neq 0}$, and rearranging for $\bold{\omega}$:
+For $\bold{\Theta_1 \neq 0}$, rearranging for $\bold{\omega_n}$:
 $$\frac{I_1 \cdot I_2}{c} \cdot \omega_n^4 - (I_1 + I_2) \cdot \omega_n^2 = 0$$
 
-Therefore:
-$$\omega_n^2 \cdot [\frac{I_1 \cdot I_2}{c} \cdot \omega_n^2 - (I_1 + I_2)] = 0$$
+Factoring:
+$$\omega_n^2 \cdot \left[\frac{I_1 \cdot I_2}{c} \cdot \omega_n^2 - (I_1 + I_2)\right] = 0$$
 
-As a result, taking into consideration that a frequency can **not** assume negative values, we have 2 possible solutions:
-1. $\bold{\omega_n = 0} \rarr$ Rigid rotation
-2. $\bold{\omega_n = \sqrt{\frac{c \cdot (I_1 + I_2)}{I_1 \cdot I_2}}} \rarr$ Out-of-phase oscillation
+Since frequency cannot be negative, this yields two solutions:
+1. $\bold{\omega_{n,1} = 0} \rarr$ Rigid rotation
+2. $\bold{\omega_{n,2} = \sqrt{\frac{c \cdot (I_1 + I_2)}{I_1 \cdot I_2}}} \rarr$ Out-of-phase oscillation
 
-How do I know it's out-of-phase oscillation? Well, I'm the one writing the article and I'm telling you... Just kidding! If we substitute the expression we found for $\bold{\omega_n}$ in the expression of $\bold{\Theta_2}$ as a function of $\bold{\Theta_1}$, we get:
+To confirm the physical interpretation of each solution, we substitute back into the expression for $\bold{\Theta_2}$ as a function of $\bold{\Theta_1}$:
 $$\Theta_2 = \frac{c - I_1 \cdot \frac{c \cdot (I_1 + I_2)}{I_1 \cdot I_2}}{c} \cdot \Theta_1$$
 
 Leading eventually to:
 $$\Theta_2 = - \frac{I_1}{I_2} \cdot \Theta_1$$
 
-The negatvie sign tells us that the angular displacements will always be in opposite sense with respect to each other. The ratio tells us that the rotating comoponent with the lowest inertia will experience a higher amplitude than the one with the highest inertia.
+The negatvie sign confirms that the two bodies always rotate in opposite directions; hence, out-of-phase oscillation. The ratio further tells us that the body with the lower inertia will experience the larger angular displacement.
 
-$$
-\begin{bmatrix}
-I_1 & 0 \\\
-0 & I_2
-\end{bmatrix}
-$$
+For $\bold{\omega_{n,1} = 0}$:
+$$\Theta_2 = \Theta_1$$
+
+Both bodies move identically. Since the system is not fixed to any gournd, this can only correspond to rigid body rotation; the shaft connecting the two bodies does not deform at all.
+
+These two expressions are in fact the **mode shapes** of the system. A mode shape describes the relative amplitude between the degrees of freedom when a given mode is active.
+
+Chossing $\Theta_1$ as reference, the two mode shapes are:
+1. **Mode 1: for** $\bold{\omega_{n,1} = 0 \rarr \phi^{(1)} = \\{1, 1\\}}$
+2. **Mode 2: for** $\bold{\omega_{n,2} = \sqrt{\frac{c \cdot (I_1 + I_2)}{I_1 \cdot I_2}} \rarr \phi^{(2)} = \\{1, -\frac{I_1}{I_2}\\}}$
+
+<u>**From natural frequencies to the general solution**</u>
+
+In the SDOF case, finding the natural frequency was essentially the finish line: we substituted it back into the proposed solution, applied the initial conditions, and obtained the response. Here, having found two natural frequencies, the situation is slightly more involved.
+
+The key observation is that, in general, the system will not vibrate exclusively in one mode or the other; in fact, it will rather exhibit both simultaneously, with the relative contribution of each mode determined by the initial conditions. The total response is therefore a superposition of both modal contributions.
+
+To see why, recall that a single free oscillator has one natural frequency and its general solution carries two contraints:
+$$A \cdot cos(\omega t) + B \cdot sin(\omega t)$$
+
+These two contraints are fixed by the two initial conditions of the SDOF system. By the same logic, a system with two modes requires one such pair of constraints **per mode**, giving four constants in total, which is precisly the number needed to satisfy the four initial conditions of our 2 DOF system:
+1. $\bold{\theta_1(0)}$: initial angle of the first degree of freedom,
+2. $\bold{\theta_2(0)}$: initial angle of the second degree of freedom,
+3. $\bold{\dot{\theta}\_1(t)}$: initial angular velocity of the first degree of freedom, and
+4. $\bold{\dot{\theta}\_2(t)}$: initial angular velocity of the second degree of freedom.
+
+This is where the mode shapes prove their worth. For a given mode, the mode shape already fixes the ratio between the responses of the two bodies; hence, once we know how one body moves in that mode, the motion of the other follows directly. This means we do not need four independent functions; we only need one unknown function per mode, which we call the **modal coordinate** $\bold{q_r(t)}$. The physical response of each body is then reconstructed as a weighted sum of modal contributions:
+
+$$\theta_1(t) = \phi^{(1)}_1 \cdot q_1(t) + \phi^{(2)}_1 \cdot q_2(t)$$
+$$\theta_2(t) = \phi^{(1)}_2 \cdot q_1(t) + \phi^{(2)}_2 \cdot q_2(t)$$
+
+Where:
+- $\bold{\phi^{(r)}_i}$ is the $\bold{r}$-th mode shape of the $\bold{i}$-th degree of freedom.
+- $\bold{q_r(t)}$ is the modal coordinate — a scalar function of time that tells us how strongly mode $\bold{r}$ is active at any given moment.
+
+The task now reduces to finding $\bold{q_1(t)}$ and $\bold{q_2(t)}$, which we do by substituting these expressions back into the original equations of motion.
+
+For the substitution, we need first to calculate the second derivatives of the proposed functions:
+
+$$\ddot{\theta}\_1(t) =  \phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)$$
+$$\ddot{\theta}\_2(t) = \phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)$$
+
+Substituting this form into the set of equations of motion for the coupled system yields:
+$$I_1 \cdot [\phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_1 - \phi^{(1)}_2) \cdot q_1(t) + (\phi^{(2)}_1 - \phi^{(2)}_2) \cdot q_2(t)] = 0$$
+$$I_2 \cdot [\phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_2 - \phi^{(1)}_1) \cdot q_1(t) + (\phi^{(2)}_2 - \phi^{(2)}_1) \cdot q_2(t)] = 0$$
+
+
+---
+
+
 
 ## Appendix
 
@@ -159,3 +201,12 @@ $$-I_2 \cdot \omega^2 \cdot \Theta_2 + (c_2 + c_3) \cdot \Theta_2 = c_2 \cdot \T
 
 From the first equation, we get:
 $$\Theta2 = \frac{c_1 + c_2 - I_1 \cdot \omega^2}{c_2} \cdot \Theta_1  
+
+---
+
+$$
+\begin{bmatrix}
+I_1 & 0 \\\
+0 & I_2
+\end{bmatrix}
+$$
