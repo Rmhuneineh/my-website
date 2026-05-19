@@ -57,8 +57,57 @@ $$I_1 \cdot \ddot{\theta}\_1 + c \cdot (\theta_1 - \theta_2) = 0$$
 $$I_2 \cdot \ddot{\theta}\_2 + c \cdot (\theta_2 - \theta_1) = 0$$
 
 Rearranging the terms so as to serparate $\bold{\theta_1}$ from $\bold{\theta_2}$:
-$$I_1 \cdot \ddot{\theta}\_1 + c \cdot \theta_1 = c \cdot \theta_2$$
-$$I_2 \cdot \ddot{\theta}\_2 + c \cdot \theta_2 = c \cdot \theta_1$$
+$$I_1 \cdot \ddot{\theta}\_1 + c \cdot \theta_1 - c \cdot \theta_2 = 0$$
+$$I_2 \cdot \ddot{\theta}\_2 + c \cdot \theta_2 - c \cdot \theta_1 = 0$$
+
+This set of second order differential equations represents a coupled system. The two equations are coupled together through the terms $\bold{c \cdot \theta_2}$ and $\bold{c \cdot \theta_1}$. This means that the motion of one body affects the motion of the other body, and vice versa. One could think of of moving those terms to the right-hand side and solve each equation as if it were a SDOF forced vibration case, as we saw in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"); however, this approach does not lead to a closed-form solution. Think of it as attempting to find the particular solution of one of the responses using the particular solution of the other as the external torque, but to get the particular solution of the other you'd need the particular solution of the first as an external torque: $\bold{\infty}$ **loop**.
+
+Thus, for an attempt to solve the system of equations, we'd need to think of 2 functions, one for each response, that would satisfy the conditions presented. Reckon trigonometry or complex exponentials would answer our call this time as well? Opting for the trigonometric form, a solution would look like this:
+$$\theta(t) = A \cdot sin(\omega t) + B \cdot cos(\omega t)$$
+
+The second derivative is simply:
+$$\ddot{\theta}(t) = -A \cdot \omega^2 \cdot sin(\omega t) - B \cdot \omega^2 \cdot cos(\omega t)$$
+
+In essence, the second derivative is proportional to the solution itself:
+$$\ddot{\theta}(t) = - \omega^2 \cdot \theta(t)$$
+
+For simplicity, denote: $\bold{\Theta = \theta(t)}$
+
+Substituting this in the set of equations derived earlier, we get:
+$$-I_1 \cdot \omega_n^2 \cdot \Theta_1 + c \cdot \Theta_1 - c \cdot \Theta_2 = 0$$
+
+$$-I_2 \cdot \omega_n^2 \cdot \Theta_2 + c \cdot \Theta_2 - c \cdot \Theta_1 = 0$$
+
+Rearranging the first equation, we get:
+$$\Theta_2 = \frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1$$
+
+Substituting this in the second equation, we get:
+$$-I_2 \cdot \omega_n^2 \cdot (\frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1) + c \cdot (\frac{c - I_1 \cdot \omega_n^2}{c} \cdot \Theta_1) - c \cdot \Theta_1 = 0$$
+
+For $\bold{\Theta_1 \neq 0}$, and rearranging for $\bold{\omega}$:
+$$\frac{I_1 \cdot I_2}{c} \cdot \omega_n^4 - (I_1 + I_2) \cdot \omega_n^2 = 0$$
+
+Therefore:
+$$\omega_n^2 \cdot [\frac{I_1 \cdot I_2}{c} \cdot \omega_n^2 - (I_1 + I_2)] = 0$$
+
+As a result, taking into consideration that a frequency can **not** assume negative values, we have 2 possible solutions:
+1. $\bold{\omega_n = 0} \rarr$ Rigid rotation
+2. $\bold{\omega_n = \sqrt{\frac{c \cdot (I_1 + I_2)}{I_1 \cdot I_2}}} \rarr$ Out-of-phase oscillation
+
+How do I know it's out-of-phase oscillation? Well, I'm the one writing the article and I'm telling you... Just kidding! If we substitute the expression we found for $\bold{\omega_n}$ in the expression of $\bold{\Theta_2}$ as a function of $\bold{\Theta_1}$, we get:
+$$\Theta_2 = \frac{c - I_1 \cdot \frac{c \cdot (I_1 + I_2)}{I_1 \cdot I_2}}{c} \cdot \Theta_1$$
+
+Leading eventually to:
+$$\Theta_2 = - \frac{I_1}{I_2} \cdot \Theta_1$$
+
+The negatvie sign tells us that the angular displacements will always be in opposite sense with respect to each other. The ratio tells us that the rotating comoponent with the lowest inertia will experience a higher amplitude than the one with the highest inertia.
+
+$$
+\begin{bmatrix}
+I_1 & 0 \\\
+0 & I_2
+\end{bmatrix}
+$$
 
 ## Appendix
 
