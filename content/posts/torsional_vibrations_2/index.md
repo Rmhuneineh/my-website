@@ -22,7 +22,7 @@ In [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 
 
 Using ***Python***, we developed a mini-solver to simulate the response of the SDOF system under various load conditions. The solver calculates the time response analytically for polynomial or harmonic excitations with the possibility to perform the calculation numerically for arbitrary excitation inputs such as measured signals.
 
-The next step is to widen our perspective and apply the systematic approach on multiple degree of freedom (MDOF) torsional systems. In addition to the 2 studies mentioned earlier, we will have 2 additional studies to be performed in between:
+The next step is to widen our perspective and apply the systematic approach on multiple degree of freedom (MDOF) torsional systems. In addition to the 2 studies mentioned earlier, we will have 2 more studies to be performed in between:
 1. **Identification of Excitation Sources**: Beyond the main load source(s), further excitation sources present in typical test bench setups must be identified (i.e gears, variable frequency drives, etc.).
 2. **Campbell Diagram Analysis**: Identifying critical operating zones based on calculated natural frequencies and excitation sources.
 
@@ -36,7 +36,7 @@ Finally, we will analyze the case where an infinitely-rigid-inertialess adaption
 
 ### Undamped Free Vibrations
 
-Consider the system shown in [**Figure 1**](#fig:2_degree_of_freedom_rigid_motion). It is composed of 2 rotating inertias, $\bold{I_1}$ and $\bold{I_2}$, connected with each other via the shaft with torsional stiffness $\bold{c}$. Assume that the system is supported by bearings allowing for rigid rotation along the shaft's axis and that the mass of the involved bodies isn't significant enough to cause the shaft to bend.
+Consider the system shown in [**Figure 1**](#fig:2_degree_of_freedom_rigid_motion). It is composed of 2 rotating inertias, $\bold{I_1}$ and $\bold{I_2}$, connected to one another via the shaft with torsional stiffness $\bold{c}$. Assume that the system is supported by bearings allowing for rigid rotation along the shaft's axis and that the mass of the involved bodies isn't significant enough to cause the shaft to bend.
 
 <figure id="fig:2_degree_of_freedom_rigid_motion">
     <img src="00_torVib.png" alt="2 Degree of Freedom System: No Rigid Motion">
@@ -60,18 +60,18 @@ Rearranging the terms so as to serparate $\bold{\theta_1}$ from $\bold{\theta_2}
 $$I_1 \cdot \ddot{\theta}\_1 + c \cdot \theta_1 - c \cdot \theta_2 = 0$$
 $$I_2 \cdot \ddot{\theta}\_2 + c \cdot \theta_2 - c \cdot \theta_1 = 0$$
 
-This is a coupled system: the motion of each body directly influences the motion ofthe other through the terms $\bold{c \cdot \theta_2}$ and $\bold{c \cdot \theta_1}$. One natural instinct would be to  move those  coupling terms to the right-hand side and treat each equation as a SDOF forced vibration problem, as we did in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"). This, however, leads to an ${\infty}$ loop: to solve for $\bold{\theta_1}$ you need $\bold{\theta2}$, and  to solve for $\bold{\theta2}$ you need $\bold{\theta_1}$.
+This is a coupled system: the motion of each body directly influences the motion ofthe other through the terms $\bold{c \cdot \theta_2}$ and $\bold{c \cdot \theta_1}$. One natural instinct would be to  move those  coupling terms to the right-hand side and treat each equation as a SDOF forced vibration problem, as we did in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"). This, however, leads to an ${\infty}$ loop: to solve for $\bold{\theta_1}$ you need $\bold{\theta_2}$, and  to solve for $\bold{\theta_2}$ you need $\bold{\theta_1}$.
 
 We therefore need a smarter approach. As in the SDOF case, we propose a harmonic solution for each degree of freedom:
-$$\theta(t) = A \cdot cos(\omega t) + B \cdot sin(\omega t)$$
+$$\theta_i(t) = A_i \cdot cos(\omega t) + B_i \cdot sin(\omega t)$$
 
 The second derivative is:
-$$\ddot{\theta}(t) = -A \cdot \omega^2 \cdot cos(\omega t) - B \cdot \omega^2 \cdot sin(\omega t)$$
+$$\ddot{\theta}_i(t) = -A_i \cdot \omega^2 \cdot cos(\omega t) - B_i \cdot \omega^2 \cdot sin(\omega t)$$
 
-which menas the second derivative is simply proportional to the solution itself
-$$\ddot{\theta}(t) = - \omega^2 \cdot \theta(t)$$
+which means the second derivative is simply proportional to the solution itself:
+$$\ddot{\theta}_i(t) = - \omega^2 \cdot \theta_i(t)$$
 
-Denoting $\bold{\Theta = \theta(t)}$ for brevity and substituting this into the equations of motion:
+Denoting $\bold{\Theta_i = \theta_i(t)}$ for brevity and substituting this into the equations of motion:
 $$-I_1 \cdot \omega_n^2 \cdot \Theta_1 + c \cdot \Theta_1 - c \cdot \Theta_2 = 0$$
 
 $$-I_2 \cdot \omega_n^2 \cdot \Theta_2 + c \cdot \Theta_2 - c \cdot \Theta_1 = 0$$
@@ -98,7 +98,7 @@ $$\Theta_2 = \frac{c - I_1 \cdot \frac{c \cdot (I_1 + I_2)}{I_1 \cdot I_2}}{c} \
 Leading eventually to:
 $$\Theta_2 = - \frac{I_1}{I_2} \cdot \Theta_1$$
 
-The negatvie sign confirms that the two bodies always rotate in opposite directions; hence, out-of-phase oscillation. The ratio further tells us that the body with the lower inertia will experience the larger angular displacement.
+The negative sign confirms that the two bodies always rotate in opposite directions; hence, out-of-phase oscillation. The ratio further tells us that the body with the lower inertia will experience the larger angular displacement.
 
 For $\bold{\omega_{n,1} = 0}$:
 $$\Theta_2 = \Theta_1$$
@@ -125,6 +125,32 @@ These two contraints are fixed by the two initial conditions of the SDOF system.
 2. $\bold{\theta_2(0)}$: initial angle of the second degree of freedom,
 3. $\bold{\dot{\theta}\_1(t)}$: initial angular velocity of the first degree of freedom, and
 4. $\bold{\dot{\theta}\_2(t)}$: initial angular velocity of the second degree of freedom.
+
+However, we have to note that the mode responsible for rigid motion with $\bold{\omega_{n,1} = 0}$ exposes a fundamental limitation in the assumption that the response should be in the form of a harmonic function. To see this limitation, we need to substitute the value of the natural frequency in the proposed solution for one of the degrees of freedom:
+
+$$\theta_i^{(1)}(t) = A_i^{(1)} \cdot cos(0 \cdot t) + B_i^{(1)} \cdot sin(0 \cdot t)$$
+
+$$\theta_i^{(1)}(t) = A_i^{(1)} \cdot 1 + B_i^{(1)} \cdot 0$$
+
+$$\theta_i^{(1)}(t) = A_i^{(1)}$$
+
+(The superscript indicates the mode we're dealing with).
+
+Recalling that a second order linear ordinary differential equation (ODE) **always** requires **exactly** two linearly independent solutions, the general solution must always be a linear combination of these two linearly independent solutions! Clearly, this is not the case for the solution of the first mode, $\bold{\theta_i^{(1)}(t)}$, as it simply results in a constant, $\bold{A_i}$. Therefore, our assumption that the solution must be harmonic is partially correct and, accordingly, it portrays part of the underlying truth concerning the rigid body motion mode.
+
+The assumption tells us that indeed the corresponding motion for that mode is rigid body motion. Moreover, it tells us that our choice of describing the motion as harmonic is no longer sufficient or else the general solution would be incomplete. The standard remedy from ODE theory for exactly this situation (when two solutions of a second order ODE coincide) is to increment the order of the obtained solution by 1 to generate a second linearly independent solution. Applied here, the resulting general solution for the rigid body mode becomes a first order polynomial of the form:
+
+$$\theta_i^{(1)}(t) = A_i^{(1)} + B_i^{(1)} \cdot t$$
+
+This has a clear physical interpretation:
+- $\bold{A_i^{(1)}}$: represents the initial angular position
+- $\bold{B_i^{(1)}}$: represents the initial angular velocity
+
+both for degree of freedom $\bold{i}$.
+
+Combining this with the harmonic contribution from the second mode, the complete general solution for each degree of freedom is:
+
+$$\theta_i(t) = A_i^{(1)} + B_i^{(1)} \cdot t + A_i^{(2)} \cdot cos(\omega_{n,2} \cdot t) + B_i^{(2)} \cdot sin(\omega_{n,2} \cdot t)$$
 
 This is where the mode shapes prove their worth. For a given mode, the mode shape already fixes the ratio between the responses of the two bodies; hence, once we know how one body moves in that mode, the motion of the other follows directly. This means we do not need four independent functions; we only need one unknown function per mode, which we call the **modal coordinate** $\bold{q_r(t)}$. The physical response of each body is then reconstructed as a weighted sum of modal contributions:
 
@@ -202,12 +228,11 @@ $$-I_2 \cdot \omega^2 \cdot \Theta_2 + (c_2 + c_3) \cdot \Theta_2 = c_2 \cdot \T
 From the first equation, we get:
 $$\Theta2 = \frac{c_1 + c_2 - I_1 \cdot \omega^2}{c_2} \cdot \Theta_1 $$
 
----
 
 $$\theta(t) = A^{(1)}_1 \cdot cos(\omega_{n,1}t) + A^{(2)}_1 \cdot cos(\omega_{n,2}t) +  B^{(1)}_1 \cdot sin(\omega_{n,1}t) + B^{(2)}_1 \cdot sin(\omega_{n,2}t)$$
 
 $$\theta(t) = A^{(1)}_1 + A^{(2)}_1 \cdot cos \left(\sqrt{\frac{c \cdot (I_1 +I_2)}{I_1 \cdot I_2}} \cdot t \right) + B^{(2)}_1 \cdot sin \left(\sqrt{\frac{c \cdot (I_1 +I_2)}{I_1 \cdot I_2}} \cdot t \right)$$
----
+
 
 $$
 \begin{bmatrix}
