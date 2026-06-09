@@ -152,7 +152,92 @@ Combining this with the harmonic contribution from the second mode, the complete
 
 $$\theta_i(t) = A_i^{(1)} + B_i^{(1)} \cdot t + A_i^{(2)} \cdot cos(\omega_{n,2} \cdot t) + B_i^{(2)} \cdot sin(\omega_{n,2} \cdot t)$$
 
-This is where the mode shapes prove their worth. For a given mode, the mode shape already fixes the ratio between the responses of the two bodies; hence, once we know how one body moves in that mode, the motion of the other follows directly. This means we do not need four independent functions; we only need one unknown function per mode, which we call the **modal coordinate** $\bold{q_r(t)}$. The physical response of each body is then reconstructed as a weighted sum of modal contributions:
+Once the form of the response has been established, the next step is to calculate the constants involved. To do this, we rely on the initial conditions as has been stated earlier. This requires us to calculate the first derivative of the solution which turns out simply to be:
+
+$$\dot{\theta}\_i(t) = B_i^{(1)} - \omega_{n,2} \cdot A_i^{(2)} \cdot sin(\omega_{n,2} \cdot t) + \omega_{n,2} \cdot B_i^{(2)} \cdot cos(\omega_{n,2} \cdot t)$$
+
+Then, for each degree of freedom, we have:
+
+$$\theta_i(0) = A_i^{(1)} + A_i^{(2)}$$
+
+$$\dot{\theta}\_i(0) = B_i^{(1)} + \omega_{n,2} \cdot B_i^{(2)}$$
+
+At this point, each degree of freedom has 4 unknowns but only 2 linearly independent equations; therefore, 2 further linearly independent equations are required per degree of freedom to render the system solvable. This is where the mode shapes prove their worth. For a given mode, the mode shape already fixes the ratio between the responses of the two bodies; hence, once we know how one body moves in that mode, the motion of the other follows directly. Since we took the first degree of freedom as our reference for the mode shapes, this translates to 2 further equations per degree of freedom in the following form:
+
+$$A_i^{(r)} = \phi_i^{(r)} \cdot A_1^{(r)}$$
+$$B_i^{(r)} = \phi_i^{(r)} \cdot B_1^{(r)}$$
+
+Obviously, the 2 further equations are useful in cases where $\bold{i}$ is not equal to **1**. This means that there aren't enough equations for the first degree of freedom. At first, one might fall into this trap; however, one must note that for the second degree of freedom, these 2 equations transform into 4 in total: 2 for each mode shape $\bold{r}$.
+
+Hence, the final set of equations needed for the calculation of all the constants is:
+
+<u>**From initial conditions**</u>
+$$A_1^{(1)} + A_1^{(2)} = \theta_1(0)$$
+$$B_1^{(1)} + \omega_{n,2} \cdot B_1^{(2)} = \dot{\theta}_1(0)$$
+$$A_2^{(1)} + A_2^{(2)} = \theta_2(0)$$
+$$B_2^{(1)} + \omega_{n,2} \cdot B_2^{(2)} = \dot{\theta}_2(0)$$
+<u>**From mode shapes**</u>
+$$A_1^{(1)} - A_2^{(1)} = 0$$
+$$\frac{I_1}{I_2} \cdot A_1^{(2)} + A_2^{(2)} = 0$$
+$$B_1^{(1)} - B_2^{(1)} = 0$$
+$$\frac{I_1}{I_2} \cdot B_1^{(2)} + B_2^{(2)} = 0$$
+
+This is a system of 8 linearly independent equations with 8 unknowns. We can transform the system into matrix form and solve it by denoting the following:
+
+- $\bold{\bar{x}}$: Vector holding all the unknowns.
+- $\bold{A}$: Matrix of coefficients.
+- $\bold{b}$: Vector holding all the terms on the right-hand side of the equal sign.
+
+Accordingly, we have the system represented in matrix form as:
+
+$$A \cdot \bar{x} = b$$
+
+where:
+
+$$A =
+\begin{bmatrix}
+1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\\
+0 & 0 & 1 & \omega_{n,2} & 0 & 0 & 0 & 0 \\\
+0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 \\\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & \omega_{n,2} \\\
+1 & 0 & 0 & 0 & -1 & 0 & 0 & 0 & \\\
+0 & \frac{I_1}{I_2} & 0 & 0 & 0 & 1 & 0 & 0 \\\
+0 & 0 & 1 & 0 & 0 & 0 & -1 & 0 \\\
+0 & 0 & 0 & \frac{I_1}{I_2} & 0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+$$\bar{x} =
+\begin{Bmatrix}
+A_1^{(1)} \\\
+A_1^{(2)} \\\
+B_1^{(1)} \\\
+B_1^{(2)} \\\
+A_2^{(1)} \\\
+A_2^{(2)} \\\
+B_2^{(1)} \\\
+B_2^{(2)} \\\
+\end{Bmatrix} ;
+b= 
+\begin{Bmatrix}
+\theta_1(0) \\\
+\dot{\theta}_1(0) \\\
+\theta_2(0) \\\
+\dot{\theta}_2(0) \\\
+0 \\\
+0 \\\
+0 \\\
+0 \\\
+\end{Bmatrix}
+$$
+
+**PS: Please note that this is NOT the representation of the system in matrix form (a topic to be handled next). This is simply using linear algebra to solve a system of equations.**
+
+Enough equations at this point, let's get into the code.
+
+### Python Code: Undamped Free Vibrations
+
+This means we do not need four independent functions; we only need one unknown function per mode, which we call the **modal coordinate** $\bold{q_r(t)}$. The physical response of each body is then reconstructed as a weighted sum of modal contributions:
 
 $$\theta_1(t) = \phi^{(1)}_1 \cdot q_1(t) + \phi^{(2)}_1 \cdot q_2(t)$$
 $$\theta_2(t) = \phi^{(1)}_2 \cdot q_1(t) + \phi^{(2)}_2 \cdot q_2(t)$$
