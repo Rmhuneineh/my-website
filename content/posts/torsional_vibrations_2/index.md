@@ -231,11 +231,137 @@ b=
 \end{Bmatrix}
 $$
 
-**PS: Please note that this is NOT the representation of the system in matrix form (a topic to be handled next). This is simply using linear algebra to solve a system of equations.**
+**PS: Please note that this is NOT to be confused with the matrix representation of the system (a topic to be handled next). This is simply using linear algebra to solve a system of equations.**
 
 Enough equations at this point, let's get into the code.
 
 ### Python Code: Undamped Free Vibrations
+
+Now, we can try to bring our equations to life by writing a piece of code that can calculate the response of the system under free vibrations for a given set of initial conditions. I will be using ***Python*** as a programming language. The code can be written in a *Jupyter Notebook* or a normal script, depending on the reader's preference.
+
+We start by importing the necessary libraries (make sure the libraries are available, otherwise install them):
+
+```Python
+# Importing necessary libraries
+import numpy as np
+import matplotlib.pyplot as plt
+```
+
+Then, we will define the parameters governing our system which in this case are the two intertias of the two rotating bodies and the torsional stiffness of the shaft:
+
+```Python
+# Parameters of the 2DOF torsional system
+I_1 = 0.1 # Intertia of DOF 1 in [kg.m^2]
+I_2 = 5 # Intertia of DOF 2 in [kg.m^2]
+c = 25 # Torsional stiffness in [N*m/rad]
+```
+
+Then, the most important part of the code: **the model**. We define the model as a Python ***Class***. An instance of this class holds the parameters we defined earlier, calculates the natural frequency of the system (out-of-phase mode), and performs all the necessary calculations to obtain the response of the system under free vibrations given a set of initial conditions:
+
+```Python
+class TwoDOFTorsionalSystem:
+    
+    # Constructor to initialize the system parameters
+    def __init__(self, I_1=0, I_2=0, c=0):
+        self.I_1 = I_1
+        self.I_2 = I_2
+        self.c = c
+        if self.I_1 > 0 and self.I_2 > 0 and self.c > 0:
+            self.omega_n = self.calculate_natural_frequency()
+        else:
+            self.omega_n = None
+    
+    # Method to calculate the natural frequency of the system: Out-of-phase vibration mode
+    def calculate_natural_frequency(self):
+        return np.sqrt(self.c * (self.I_1 + self.I_2) / (self.I_1 * self.I_2))
+    
+    # Method to simulate the time response of the system: Free Vibrations
+    def simulate_time_response(self, initial_angle=np.array([0.0, 0.0]), initial_velocity=np.array([0.0, 0.0]), time_span=10):
+        if self.omega_n is None:
+            raise ValueError("Natural frequency is not defined. Please set inertias and stiffness.")
+        self.A = np.array([
+            [1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, self.omega_n, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, self.omega_n],
+            [1, 0, 0, 0, -1, 0, 0, 0],
+            [0, self.I_1/self.I_2, 0, 0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0, 0, -1, 0],
+            [0, 0, 0, self.I_1/self.I_2, 0, 0, 0, 1]
+        ])
+        self.b = np.array([initial_angle[0], initial_velocity[0], initial_angle[1], initial_velocity[1], 0, 0, 0, 0])
+        A_1_1, A_1_2, B_1_1, B_1_2, A_2_1, A_2_2, B_2_1, B_2_2 = np.linalg.solve(self.A, self.b)
+        t = np.linspace(0, time_span, 1000)
+        theta_1 = A_1_1 + B_1_1 * t + A_1_2 * np.cos(self.omega_n * t) + B_1_2 * np.sin(self.omega_n * t)
+        theta_2 = A_2_1 + B_2_1 * t + A_2_2 * np.cos(self.omega_n * t) + B_2_2 * np.sin(self.omega_n * t)
+        return t, theta_1, theta_2
+```
+
+I think the code is self-explanatory: we have a constructor method, ```__init__```, allowing us to set the parameters governing the system and calculate the natural frequency of the out-of-phase oscillation mode (via ```calculate_natural_frequency```) if the inserted parameters satisfy the physical condition of being strictly greater than 0. Then, we define the function that calculates the time response of each degree of freedom (```simulate_time_response```), given a time span and a set of initial conditions. After checking whether the natural frequency has been properly calculated, we define the coefficient matrix and the corresponding vector for solving the system of equations, which we do via the ```np.linalg.solve()``` method provided by the **Numpy** library. Finally, we use the calculated coefficients to calculate the analytical solution of the system and return it along with the time vector to the user.
+
+An example for using the model is provided in the following code block:
+```Python
+# Define an instance of the model
+S = TwoDOFTorsionalSystem(I_1=I_1, I_2=I_2, c=c)
+
+# Define Initial Conditions
+theta_0 = [1, -0.1] # Initial angular position
+theta_dot_0 = [-2, 0.1] # Initial angular velocity
+
+# Calculate solution
+t, theta_1, theta_2 = S.simulate_time_response(initial_angle=theta_0, initial_velocity=theta_dot_0)
+
+# Plotting the time response
+fig, axes = plt.subplots(3, 1, figsize=(15, 10))
+fig.suptitle('Time Response of 2DOF Torsional System', fontsize=16)
+# Angular Displacement vs Time
+ax2 = axes[0].twinx()
+axes[0].plot(t, theta_1, label='DOF 1')
+ax2.plot(t, theta_2, label='DOF 2', color='#ff7f0e')
+axes[0].set_xlabel('Time [s]')
+axes[0].set_ylabel('Angular Displacement 1 [rad]')
+ax2.set_ylabel('Angular Displacement 2 [rad]')
+axes[0].set_title('Angular Displacement vs Time')
+axes[0].grid(True)
+
+# Angular Velocity vs Time
+angular_velocity_1 = np.gradient(theta_1, t, axis=0)
+angular_velocity_2 = np.gradient(theta_2, t, axis=0)
+
+ax2 = axes[1].twinx()
+axes[1].plot(t, angular_velocity_1)
+ax2.plot(t, angular_velocity_2, color='#ff7f0e')
+axes[1].set_xlabel('Time [s]')
+axes[1].set_ylabel('Angular Velocity 1 [rad/s]')
+ax2.set_ylabel('Angular Velocity 2 [rad/s]')
+axes[1].set_title('Angular Velocity vs Time')
+axes[1].grid(True)
+
+# Angular Acceleration vs Time
+angular_acceleration_1 = np.gradient(angular_velocity_1, t, axis=0)
+angular_acceleration_2 = np.gradient(angular_velocity_2, t, axis=0)
+
+ax2 = axes[2].twinx()
+axes[2].plot(t, angular_acceleration_1)
+ax2.plot(t, angular_acceleration_2, color='#ff7f0e')
+axes[2].set_xlabel('Time [s]')
+axes[2].set_ylabel('Angular Acceleration 1 [rad/s^2]')
+ax2.set_ylabel('Angular Acceleration 2 [rad/s^2]')
+axes[2].set_title('Angular Acceleration vs Time')
+axes[2].grid(True)
+
+fig.legend()
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.text(-0.5, 40, r"$\mathbf{\theta_1(0) = 1 [rad]}$" + "\n" + r"$\mathbf{\dot{\theta}_1(0) = -2 [rad/s]}$" + "\n" + 
+         r"$\mathbf{\theta_2(0) = -0.1 [rad]}$" + "\n" + r"$\mathbf{\dot{\theta}_2(0) = 0.1 [rad/s]}$")
+```
+
+This code block should result in the plot shown in [**Figure 3**](#fig:2_degree_of_freedom_freeVibration_time_response). You're free to experiment around with different sets of initial conditions. In my example, I experimented with a general case where both degrees of freedom have both, their initial angular positions and angular velocities, initialized to reasonable values. We can clearly see that both degrees of freedom oscillate out-of-phase. Moreover, we can also see the trend of rigid body motion, especially for ***DOF 2***, where a steady increase in the angular position can be seen along with the oscillation trend. This can also be noted by the fact that the angular velocity of ***DOF 2*** oscillates around an average different from 0. Please note that ***DOF 1*** experiences the same behaviour but the contribution of rigid body motion mode is lower compared to that of ***DOF 2***. 
+
+<figure id="fig:2_degree_of_freedom_freeVibration_time_response">
+    <img src="02_torVib.png" alt="2 Degree of Freedom System: Free Vibration Time Response">
+    <figcaption>Figure 3 - 2 Degree of Freedom System: Free Vibration Time Response</figcaption>
+</figure>
 
 This means we do not need four independent functions; we only need one unknown function per mode, which we call the **modal coordinate** $\bold{q_r(t)}$. The physical response of each body is then reconstructed as a weighted sum of modal contributions:
 
