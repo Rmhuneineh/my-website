@@ -351,9 +351,9 @@ axes[2].set_title('Angular Acceleration vs Time')
 axes[2].grid(True)
 
 fig.legend()
+fig.text(0.06, 0.9, r"$\mathbf{\theta_1(0) = }$" + f"{theta_0[0]} [rad]" + "\n" + r"$\mathbf{\dot{\theta}_1(0) = }$" + f"{theta_dot_0[0]} [rad/s]" + "\n" + 
+         r"$\mathbf{\theta_2(0) = }$" + f"{theta_0[1]} [rad]" + "\n" + r"$\mathbf{\dot{\theta}_2(0) = }$" + f"{theta_dot_0[1]} [rad/s]")
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.text(-0.5, 40, r"$\mathbf{\theta_1(0) = 1 [rad]}$" + "\n" + r"$\mathbf{\dot{\theta}_1(0) = -2 [rad/s]}$" + "\n" + 
-         r"$\mathbf{\theta_2(0) = -0.1 [rad]}$" + "\n" + r"$\mathbf{\dot{\theta}_2(0) = 0.1 [rad/s]}$")
 ```
 
 This code block should result in the plot shown in [**Figure 3**](#fig:2_degree_of_freedom_freeVibration_time_response). You're free to experiment around with different sets of initial conditions. In my example, I experimented with a general case where both degrees of freedom have both, their initial angular positions and angular velocities, initialized to reasonable values. We can clearly see that both degrees of freedom oscillate out-of-phase. Moreover, we can also see the trend of rigid body motion, especially for ***DOF 2***, where a steady increase in the angular position can be seen along with the oscillation trend. This can also be noted by the fact that the angular velocity of ***DOF 2*** oscillates around an average different from 0. Please note that ***DOF 1*** experiences the same behaviour but the contribution of rigid body motion mode is lower compared to that of ***DOF 2***. 
