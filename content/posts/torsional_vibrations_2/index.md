@@ -32,9 +32,9 @@ After that, we will shift our focus to ***n-degree*** of freedom torsional syste
 
 Finally, we will analyze the case where an infinitely-rigid-inertialess adaption transmission is present in between elements. This will serve as an introduction to more complex test bench configurations where certain transformations are required to account for the gear ratio. It will also introduce a new source of excitation beyond the main load source(s) that should be accounted for in the analysis.
 
-## 2 Degrees of Freedom
+## 2 Degrees of Freedom: Undamped Free Vibrations
 
-### Undamped Free Vibrations
+### Theory
 
 Consider the system shown in [**Figure 1**](#fig:2_degree_of_freedom_rigid_motion). It is composed of 2 rotating inertias, $\bold{I_1}$ and $\bold{I_2}$, connected to one another via the shaft with torsional stiffness $\bold{c}$. Assume that the system is supported by bearings allowing for rigid rotation along the shaft's axis and that the mass of the involved bodies isn't significant enough to cause the shaft to bend.
 
@@ -123,8 +123,8 @@ $$A \cdot cos(\omega t) + B \cdot sin(\omega t)$$
 These two contraints are fixed by the two initial conditions of the SDOF system. By the same logic, a system with two modes requires one such pair of constraints **per mode**, giving four constants in total, which is precisly the number needed to satisfy the four initial conditions of our 2 DOF system:
 1. $\bold{\theta_1(0)}$: initial angle of the first degree of freedom,
 2. $\bold{\theta_2(0)}$: initial angle of the second degree of freedom,
-3. $\bold{\dot{\theta}\_1(t)}$: initial angular velocity of the first degree of freedom, and
-4. $\bold{\dot{\theta}\_2(t)}$: initial angular velocity of the second degree of freedom.
+3. $\bold{\dot{\theta}\_1(0)}$: initial angular velocity of the first degree of freedom, and
+4. $\bold{\dot{\theta}\_2(0)}$: initial angular velocity of the second degree of freedom.
 
 However, we have to note that the mode responsible for rigid motion with $\bold{\omega_{n,1} = 0}$ exposes a fundamental limitation in the assumption that the response should be in the form of a harmonic function. To see this limitation, we need to substitute the value of the natural frequency in the proposed solution for one of the degrees of freedom:
 
@@ -356,23 +356,82 @@ fig.text(0.06, 0.9, r"$\mathbf{\theta_1(0) = }$" + f"{theta_0[0]} [rad]" + "\n" 
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 ```
 
-This code block should result in the plot shown in [**Figure 3**](#fig:2_degree_of_freedom_freeVibration_time_response). You're free to experiment around with different sets of initial conditions. In my example, I experimented with a general case where both degrees of freedom have both, their initial angular positions and angular velocities, initialized to reasonable values. We can clearly see that both degrees of freedom oscillate out-of-phase. Moreover, we can also see the trend of rigid body motion, especially for ***DOF 2***, where a steady increase in the angular position can be seen along with the oscillation trend. This can also be noted by the fact that the angular velocity of ***DOF 2*** oscillates around an average different from 0. Please note that ***DOF 1*** experiences the same behaviour but the contribution of rigid body motion mode is lower compared to that of ***DOF 2***. 
+This code block should result in the plot shown in [**Figure 3**](#fig:2_degree_of_freedom_freeVibration_time_response). You're free to experiment around with different sets of initial conditions. In my example, I experimented with a general case where both degrees of freedom have both, their initial angular positions and angular velocities, initialized to reasonable values. We can clearly see that both degrees of freedom oscillate out-of-phase. Moreover, we can also see the trend of rigid body motion, especially for ***DOF 2***, where a steady increase in the angular position can be seen along with the oscillation trend. This can also be noted by the fact that the angular velocity of ***DOF 2*** oscillates around an average different from 0. Please note that ***DOF 1*** experiences the same behaviour but the contribution of rigid body motion mode is lower compared to that of out-of-phase oscillation mode. 
 
 <figure id="fig:2_degree_of_freedom_freeVibration_time_response">
     <img src="02_torVib.png" alt="2 Degree of Freedom System: Free Vibration Time Response">
     <figcaption>Figure 3 - 2 Degree of Freedom System: Free Vibration Time Response</figcaption>
 </figure>
 
-This means we do not need four independent functions; we only need one unknown function per mode, which we call the **modal coordinate** $\bold{q_r(t)}$. The physical response of each body is then reconstructed as a weighted sum of modal contributions:
 
-$$\theta_1(t) = \phi^{(1)}_1 \cdot q_1(t) + \phi^{(2)}_1 \cdot q_2(t)$$
-$$\theta_2(t) = \phi^{(1)}_2 \cdot q_1(t) + \phi^{(2)}_2 \cdot q_2(t)$$
+## 2 Degrees of Freedom: Forced Vibration Analysis
 
-Where:
-- $\bold{\phi^{(r)}_i}$ is the $\bold{r}$-th mode shape of the $\bold{i}$-th degree of freedom.
-- $\bold{q_r(t)}$ is the modal coordinate — a scalar function of time that tells us how strongly mode $\bold{r}$ is active at any given moment.
+Natrually, after deriving the response of the system under free vibrations, the next step is to take that as the ***general*** (or homogeneous) solution and proceed with the analysis of the system under forced vibrations to derive the ***particular*** solution. This, however, is not as straightforward due to the fact that the particular solution always assumes the form of the external force; thus, taking that specific external force into account in the complete solution. As a reminder, the general solution maintains the identity of the system under any type of external forcing, which is in accordance with what's documented in literature based on carried measurements.
 
-The task now reduces to finding $\bold{q_1(t)}$ and $\bold{q_2(t)}$, which we do by substituting these expressions back into the original equations of motion.
+The equations of motion for the 2 DOF torsional system subjected to external force are:
+
+$$I_1 \cdot \ddot{\theta}\_1 + c \cdot \theta_1 - c \cdot \theta_2 = \tau_1(t)$$
+$$I_2 \cdot \ddot{\theta}\_2 + c \cdot \theta_2 - c \cdot \theta_1 = \tau_2(t)$$
+
+The solution for the degree of freedom '$\bold{i}$' has the form:
+
+$$\theta_i(t) = \theta_{i, G}(t) + \theta_{i, P}(t)$$
+
+Where $\bold{\theta\_{i, G}(t)}$ is the general solution derived earlier when the system is subjected to free vibration. $\bold{\theta\_{i, P}(t)}$ is the particular solution, the calculation of which is the subject of this section.
+
+Due to this additional layer of complication, we will only focus on deriving the particular solution for 3 different types of external forcing:
+1. Polynomials
+2. Harmonics
+3. Measurement-like
+
+For the first 2, the solution is analytical; hence, the solver will be analytical as well. For the last, we will see how to implement a numerical solver. Note that, in the following subsections, the mathematical derivations are going to be relatively sophisticated. As a refresher, I strongly recommend visiting the [**Appendix of Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#appendix "Part 1 - Appendix") where the derivation for a SDOF is formulated.
+
+That said, let's start our analysis with the family of ***Polynomials***.
+
+### Theory: Polynomial Excitations
+
+A polynomial excitation source applied on the degree of freedom '$\bold{i}$' has the following general form:
+
+$$\tau_i(t) = \sum_{k_i=0}^{k_i = n_i} {a_{k_i} \cdot t^{n_i - k_i}}$$
+
+Where '$\bold{n\_i} = 0$', the polynomial reduces to a constant, and where '$\bold{n\_i} = 1$', the polynomial reduces to a linear excitation. Regardless, the particular solution for the degree of freedom '$\bold{i}$' should follow and, as a result, be of the following form:
+
+$$\theta_{i, P}(t) = \sum_{k_i=0}^{k_i = n_i} \alpha_{k_i} \cdot t^{n_i - k_i}$$
+
+To substitute this form in the equations of motion, we'd need first to calculate the second derivative:
+
+$$\ddot{\theta}\_{i, P}(t) = \sum_{k_i=2}^{k_i = n_i} \left(n_i - k_i + 2\right) \cdot \left(n_i - k_i + 1\right) \alpha_{k_i-2} \cdot t^{n_i - k_i}$$
+
+The substitution would then result in the following set of equations:
+
+$$I_1 \cdot\sum_{k_1=2}^{k_1 = n_1} \left(n_1 - k_1 + 2\right) \cdot \left(n_1 - k_1 + 1\right) \alpha_{k_1-2} \cdot t^{n_1 - k_1} + c \cdot \sum_{k_1=0}^{k_1 = n_1} \alpha_{k_1} \cdot t^{n_1 - k_1} - c \cdot \sum_{k_2=0}^{k_2 = n_2} \alpha_{k_2} \cdot t^{n_2 - k_2} = \sum_{k_1=0}^{k_1 = n_1} {a_{k_1} \cdot t^{n_1 - k_1}}$$
+
+$$I_2 \cdot\sum_{k_2=2}^{k_2 = n_2} \left(n_2 - k_2 + 2\right) \cdot \left(n_2 - k_2 + 1\right) \alpha_{k_2-2} \cdot t^{n_2 - k_2} + c \cdot \sum_{k_2=0}^{k_2 = n_2} \alpha_{k_2} \cdot t^{n_2 - k_2} - c \cdot \sum_{k_1=0}^{k_1 = n_1} \alpha_{k_1} \cdot t^{n_1 - k_1} = \sum_{k_2=0}^{k_2 = n_2} {a_{k_2} \cdot t^{n_2 - k_2}}$$
+
+At this point, I can totally understand if you feel like giving up on all of this. This set of equations is anything but readable, and it's specifically for that reason that I decided to include it. The complexity clearly shows, and in this specific example, we're assuming that both degrees of freedom are subjected to polynomial excitations, albeit each with a different order. Reality is much harsher on us; in fact, many a time it happens that the 2 degrees of freedom are subjected to completely different forms of excitations; thus, resulting in a much more complicated system.
+
+How do we solve this issue? $\bold{\rarr}$ ***Decoupling***
+
+Finding a way to decouple the system is the first *tipping point* in this article. Frankly speaking, decoupling the system translates to finding a different representation of it in which each degree of freedom has its own separate equation of motion while the other degree of freedom is **not** present in any of the terms. This is achieved by switching from ***physical coordinates*** to ***modal coordinates***.
+
+<u>**Modal Coordinates For The Rescue**</u>
+
+Looking back at the general solution for free vibrations, we can actually try to reformulate it in modal coordinates by defining them as follows:
+
+$$q_1(t) = A_1^{(1)} + B_1^{(1)} \cdot t$$
+$$q_2(t) = A_1^{(2)} \cdot cos \left(\omega_{n,2} \cdot t \right) + B_1^{(2)} \cdot sin \left(\omega_{n,2} \cdot t \right)$$
+
+Recalling also the mode shapes:
+
+$$\phi_1^{(1)} = 1, \space \phi_2^{(1)} = 1$$
+$$\phi_1^{(2)} = 1, \space \phi_2^{(2)} = -\frac{I_1}{I_2}$$
+
+Then the general solution can be reformulated as:
+
+$$\theta_{1, G}(t) = \phi_1^{(1)} \cdot q_1(t) + \phi_1^{(2)} \cdot q_2(t)$$
+$$\theta_{2, G}(t) = \phi_2^{(1)} \cdot q_1(t) + \phi_2^{(2)} \cdot q_2(t)$$
+
+Adopting the same for the particular solution, the task then reduces to finding $\bold{q_1(t)}$ and $\bold{q_2(t)}$, which we do by substituting these expressions back into the original equations of motion.
 
 For the substitution, we need first to calculate the second derivatives of the proposed functions:
 
@@ -380,9 +439,35 @@ $$\ddot{\theta}\_1(t) =  \phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot 
 $$\ddot{\theta}\_2(t) = \phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)$$
 
 Substituting this form into the set of equations of motion for the coupled system yields:
-$$I_1 \cdot [\phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_1 - \phi^{(1)}_2) \cdot q_1(t) + (\phi^{(2)}_1 - \phi^{(2)}_2) \cdot q_2(t)] = 0$$
-$$I_2 \cdot [\phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_2 - \phi^{(1)}_1) \cdot q_1(t) + (\phi^{(2)}_2 - \phi^{(2)}_1) \cdot q_2(t)] = 0$$
+$$I_1 \cdot [\phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_1 - \phi^{(1)}_2) \cdot q_1(t) + (\phi^{(2)}_1 - \phi^{(2)}_2) \cdot q_2(t)] = \tau_1(t)$$
+$$I_2 \cdot [\phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_2 - \phi^{(1)}_1) \cdot q_1(t) + (\phi^{(2)}_2 - \phi^{(2)}_1) \cdot q_2(t)] = \tau_2(t)$$
 
+At this point, we haven't achieved the decoupling yet (at least not completely). To achieve that, we'd need to multiply the first equation by '$\bold{\phi\_1\^{(r)}}$', then second equation by '$\bold{\phi\_2\^{(r)}}$', and then add both these results together. Applying that for the fist mode, we will end up with the following:
+
+$$I_1 \cdot \ddot{q}\_1 + I_2 \cdot \ddot{q}\_1 + \underbrace{\left(I_1 \cdot \phi_1^{(1)} \cdot \phi_1^{(2)} + I_2 \cdot \phi_2^{(1)} \cdot \phi_2^{(2)}\right)}_{\text{cross term}} \cdot \ddot{q}\_2 + \text{stiffness terms} = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
+
+I didn't include the ***stiffness terms*** explicitly because they experience the same effect the ***cross term*** experiences. What does the ***cross term*** experience? It experiences the orthogonality property of the modal shapes. What does that mean? If we take the cross term and substitute the value of the mode shapes, we get:
+
+$$I_1 \cdot 1 \cdot 1 + I_2 \cdot 1 \cdot \left(-\frac{I_1}{I_2} \right) = I_1 - I_1 = 0$$
+
+Within the orthogonality property of the mode shapes lies the crux leading to the necessity of using modal coordinates instead of physical coordinates for the decoupling. In fact, stripping off the last equation from the ***cross term*** and the ***stiffness terms***, we end up with an equation containing only $\bold{q\_1(t)}$:
+
+$$I_{eq}^{(1)} \cdot \ddot{q}\_1 = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
+
+where:
+
+$$I_{eq}^{(1)} = I_1 + I_2$$
+
+Repeating the same operationg for the second mode, we end up with the following:
+
+$$I_{eq}^{(2)} \cdot \ddot{q}\_2 + c_{eq}^{(2)} \cdot q_2 = \phi_1^{(2)} \cdot \tau_1(t) + \phi_2^{(2)} \cdot \tau_2(t)$$
+
+where:
+
+$$I_{eq}^{(2)} = I_1 + \frac{I_1^2}{I_2}$$
+$$c_{eq}^{(2)} = I_{eq}^{(2)} \cdot \omega_{n,2}^2$$
+
+At this point, we have 2 completely independent equations, one for each modal coordinate. The first doesn't have a stiffness term which is consistent with the rigid body mode having zero natural frequency. The second one is ***exactly*** a SDOF equation in '$\bold{q_2}$', identical in structure to what we solved in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1").
 
 ---
 
