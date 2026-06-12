@@ -458,7 +458,7 @@ where:
 
 $$I_{eq}^{(1)} = I_1 + I_2$$
 
-Repeating the same operationg for the second mode, we end up with the following:
+Repeating the same operation for the second mode, we end up with the following:
 
 $$I_{eq}^{(2)} \cdot \ddot{q}\_2 + c_{eq}^{(2)} \cdot q_2 = \phi_1^{(2)} \cdot \tau_1(t) + \phi_2^{(2)} \cdot \tau_2(t)$$
 
@@ -468,6 +468,8 @@ $$I_{eq}^{(2)} = I_1 + \frac{I_1^2}{I_2}$$
 $$c_{eq}^{(2)} = I_{eq}^{(2)} \cdot \omega_{n,2}^2$$
 
 At this point, we have 2 completely independent equations, one for each modal coordinate. The first doesn't have a stiffness term which is consistent with the rigid body mode having zero natural frequency. The second one is ***exactly*** a SDOF equation in '$\bold{q_2}$', identical in structure to what we solved in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1").
+
+The right-hand side of each equation is a weighted combination of the external torques, which is called the **modal force**. Applying this methodology for the case of free vibrations, we still get consistent results. For the first mode, its second derivative becomes equal to null; thus, leading to a first order polynomial solution. For the second mode, we get a second order ordinary differential equation where the second derivative of the response is proportional to the response itself; hence, leading to a harmonic solution.
 
 ---
 
