@@ -382,19 +382,19 @@ Where $\bold{\theta\_{i, G}(t)}$ is the general solution derived earlier when th
 Due to this additional layer of complication, we will only focus on deriving the particular solution for 3 different types of external forcing:
 1. Polynomials
 2. Harmonics
-3. Measurement-like
+3. Arbitrary
 
 For the first 2, the solution is analytical; hence, the solver will be analytical as well. For the last, we will see how to implement a numerical solver. Note that, in the following subsections, the mathematical derivations are going to be relatively sophisticated. As a refresher, I strongly recommend visiting the [**Appendix of Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#appendix "Part 1 - Appendix") where the derivation for a SDOF is formulated.
 
 That said, let's start our analysis with the family of ***Polynomials***.
 
-### Theory: Polynomial Excitations
+### Example: Polynomial Excitations
 
 A polynomial excitation source applied on the degree of freedom '$\bold{i}$' has the following general form:
 
 $$\tau_i(t) = \sum_{k_i=0}^{k_i = n_i} {a_{k_i} \cdot t^{n_i - k_i}}$$
 
-Where '$\bold{n\_i} = 0$', the polynomial reduces to a constant, and where '$\bold{n\_i} = 1$', the polynomial reduces to a linear excitation. Regardless, the particular solution for the degree of freedom '$\bold{i}$' should follow and, as a result, be of the following form:
+When '$\bold{n\_i} = 0$', the polynomial reduces to a constant, and when '$\bold{n\_i} = 1$', the polynomial reduces to a linear excitation. Regardless, the particular solution for the degree of freedom '$\bold{i}$' should follow and, as a result, be of the following form:
 
 $$\theta_{i, P}(t) = \sum_{k_i=0}^{k_i = n_i} \alpha_{k_i} \cdot t^{n_i - k_i}$$
 
@@ -412,14 +412,14 @@ At this point, I can totally understand if you feel like giving up on all of thi
 
 How do we solve this issue? $\bold{\rarr}$ ***Decoupling***
 
-Finding a way to decouple the system is the first *tipping point* in this article. Frankly speaking, decoupling the system translates to finding a different representation of it in which each degree of freedom has its own separate equation of motion while the other degree of freedom is **not** present in any of the terms. This is achieved by switching from ***physical coordinates*** to ***modal coordinates***.
+### Modal Coordinates For The Rescue
 
-<u>**Modal Coordinates For The Rescue**</u>
+Finding a way to decouple the system is the first *tipping point* in this article. Frankly speaking, decoupling the system translates to finding a different representation of it in which each degree of freedom has its own separate equation of motion, without including the second degree of freedom in any of the terms, and vice versa. This is achieved by switching from ***physical coordinates*** to ***modal coordinates***.
 
 Looking back at the general solution for free vibrations, we can actually try to reformulate it in modal coordinates by defining them as follows:
 
-$$q_1(t) = A_1^{(1)} + B_1^{(1)} \cdot t$$
-$$q_2(t) = A_1^{(2)} \cdot cos \left(\omega_{n,2} \cdot t \right) + B_1^{(2)} \cdot sin \left(\omega_{n,2} \cdot t \right)$$
+$$q_{1, G}(t) = A_{1, G}^{(1)} + B_{1, G}^{(1)} \cdot t$$
+$$q_{2, G}(t) = A_{1, G}^{(2)} \cdot cos \left(\omega_{n,2} \cdot t \right) + B_{1, G}^{(2)} \cdot sin \left(\omega_{n,2} \cdot t \right)$$
 
 Recalling also the mode shapes:
 
@@ -428,25 +428,25 @@ $$\phi_1^{(2)} = 1, \space \phi_2^{(2)} = -\frac{I_1}{I_2}$$
 
 Then the general solution can be reformulated as:
 
-$$\theta_{1, G}(t) = \phi_1^{(1)} \cdot q_1(t) + \phi_1^{(2)} \cdot q_2(t)$$
-$$\theta_{2, G}(t) = \phi_2^{(1)} \cdot q_1(t) + \phi_2^{(2)} \cdot q_2(t)$$
+$$\theta_{1, G}(t) = \phi_1^{(1)} \cdot q_{1, G}(t) + \phi_1^{(2)} \cdot q_{2, G}(t)$$
+$$\theta_{2, G}(t) = \phi_2^{(1)} \cdot q_{1, G}(t) + \phi_2^{(2)} \cdot q_{2, G}(t)$$
 
-Adopting the same for the particular solution, the task then reduces to finding $\bold{q_1(t)}$ and $\bold{q_2(t)}$, which we do by substituting these expressions back into the original equations of motion.
+Adopting the same for the particular solution, the task then reduces to finding $\bold{q_{1, P}(t)}$ and $\bold{q_{2, P}(t)}$, which we do by substituting these expressions back into the original equations of motion. For brevity I will remove the subscript for the particular solution and use $\bold{q_1(t)}$ and $\bold{q_2(t)}$ only.
 
 For the substitution, we need first to calculate the second derivatives of the proposed functions:
 
-$$\ddot{\theta}\_1(t) =  \phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)$$
-$$\ddot{\theta}\_2(t) = \phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)$$
+$$\ddot{\theta}\_{1, P}(t) =  \phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)$$
+$$\ddot{\theta}\_{2, P}(t) = \phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)$$
 
 Substituting this form into the set of equations of motion for the coupled system yields:
 $$I_1 \cdot [\phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_1 - \phi^{(1)}_2) \cdot q_1(t) + (\phi^{(2)}_1 - \phi^{(2)}_2) \cdot q_2(t)] = \tau_1(t)$$
 $$I_2 \cdot [\phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_2 - \phi^{(1)}_1) \cdot q_1(t) + (\phi^{(2)}_2 - \phi^{(2)}_1) \cdot q_2(t)] = \tau_2(t)$$
 
-At this point, we haven't achieved the decoupling yet (at least not completely). To achieve that, we'd need to multiply the first equation by '$\bold{\phi\_1\^{(r)}}$', then second equation by '$\bold{\phi\_2\^{(r)}}$', and then add both these results together. Applying that for the fist mode, we will end up with the following:
+At this point, we haven't achieved the decoupling yet (at least not completely). To achieve that, we'd need to multiply the first equation by '$\bold{\phi\_1\^{(r)}}$', the second equation by '$\bold{\phi\_2\^{(r)}}$', and then add both these results together. Applying that for the first mode, we will end up with the following:
 
 $$I_1 \cdot \ddot{q}\_1 + I_2 \cdot \ddot{q}\_1 + \underbrace{\left(I_1 \cdot \phi_1^{(1)} \cdot \phi_1^{(2)} + I_2 \cdot \phi_2^{(1)} \cdot \phi_2^{(2)}\right)}_{\text{cross term}} \cdot \ddot{q}\_2 + \text{stiffness terms} = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
 
-I didn't include the ***stiffness terms*** explicitly because they experience the same effect the ***cross term*** experiences. What does the ***cross term*** experience? It experiences the orthogonality property of the modal shapes. What does that mean? If we take the cross term and substitute the value of the mode shapes, we get:
+I didn't include the ***stiffness terms*** explicitly because they experience the same effect the ***cross term*** experiences. What does the ***cross term*** experience? It experiences the effect of the ***orthogonality property*** of the modal shapes. What does that mean? If we take the cross term and substitute the values of the mode shapes, we get:
 
 $$I_1 \cdot 1 \cdot 1 + I_2 \cdot 1 \cdot \left(-\frac{I_1}{I_2} \right) = I_1 - I_1 = 0$$
 
@@ -469,7 +469,7 @@ $$c_{eq}^{(2)} = I_{eq}^{(2)} \cdot \omega_{n,2}^2$$
 
 At this point, we have 2 completely independent equations, one for each modal coordinate. The first doesn't have a stiffness term which is consistent with the rigid body mode having zero natural frequency. The second one is ***exactly*** a SDOF equation in '$\bold{q_2}$', identical in structure to what we solved in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1").
 
-The right-hand side of each equation is a weighted combination of the external torques, which is called the **modal force**. Applying this methodology for the case of free vibrations, we still get consistent results. For the first mode, its second derivative becomes equal to null; thus, leading to a first order polynomial solution. For the second mode, we get a second order ordinary differential equation where the second derivative of the response is proportional to the response itself; hence, leading to a harmonic solution.
+The right-hand side of each equation is a weighted combination of the external torques, which is called the **modal force**. Applying this methodology for the case of free vibrations, we still get consistent results. For the first mode, its second derivative becomes equal to null; thus, leading to a first order polynomial solution. For the second mode, we get a second order ordinary differential equation where the second derivative of the response is proportional to the negative of the response; hence, leading to a harmonic solution.
 
 ---
 
