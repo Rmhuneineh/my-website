@@ -366,7 +366,7 @@ This code block should result in the plot shown in [**Figure 3**](#fig:2_degree_
 
 ## 2 Degrees of Freedom: Forced Vibration Analysis
 
-Natrually, after deriving the response of the system under free vibrations, the next step is to take that as the ***general*** (or homogeneous) solution and proceed with the analysis of the system under forced vibrations to derive the ***particular*** solution. This, however, is not as straightforward due to the fact that the particular solution always assumes the form of the external force; thus, taking that specific external force into account in the complete solution. As a reminder, the general solution maintains the identity of the system under any type of external forcing, which is in accordance with what's documented in literature based on carried measurements.
+Naturally, after deriving the response of the system under free vibrations, the next step is to take that as the ***general*** (or homogeneous) solution and proceed with the analysis of the system under forced vibrations to derive the ***particular*** solution. This, however, is not as straightforward due to the fact that the particular solution always assumes the form of the external force; thus, taking that specific external force into account in the complete solution. As a reminder, the general solution maintains the identity of the system under any type of external forcing, which is in accordance with what's documented in literature based on carried measurements.
 
 The equations of motion for the 2 DOF torsional system subjected to external force are:
 
@@ -408,7 +408,7 @@ $$I_1 \cdot\sum_{k_1=2}^{k_1 = n_1} \left(n_1 - k_1 + 2\right) \cdot \left(n_1 -
 
 $$I_2 \cdot\sum_{k_2=2}^{k_2 = n_2} \left(n_2 - k_2 + 2\right) \cdot \left(n_2 - k_2 + 1\right) \alpha_{k_2-2} \cdot t^{n_2 - k_2} + c \cdot \sum_{k_2=0}^{k_2 = n_2} \alpha_{k_2} \cdot t^{n_2 - k_2} - c \cdot \sum_{k_1=0}^{k_1 = n_1} \alpha_{k_1} \cdot t^{n_1 - k_1} = \sum_{k_2=0}^{k_2 = n_2} {a_{k_2} \cdot t^{n_2 - k_2}}$$
 
-At this point, I can totally understand if you feel like giving up on all of this. This set of equations is anything but readable, and it's specifically for that reason that I decided to include it. The complexity clearly shows, and in this specific example, we're assuming that both degrees of freedom are subjected to polynomial excitations, albeit each with a different order. Reality is much harsher on us; in fact, many a time it happens that the 2 degrees of freedom are subjected to completely different forms of excitations; thus, resulting in a much more complicated system.
+At this point, I can totally understand if you feel like giving up on all of this. This set of equations is anything but readable, and it's specifically for that reason that I decided to include it. The complexity clearly shows, and in this specific example, we're assuming that both degrees of freedom are subjected to polynomial excitations, albeit each with a different order. Reality is much harsher on us; in fact, it is often the case that the 2 degrees of freedom are subjected to completely different forms of excitations; thus, resulting in a much more complicated system.
 
 How do we solve this issue? $\bold{\rarr}$ ***Decoupling***
 
@@ -431,7 +431,7 @@ Then the general solution can be reformulated as:
 $$\theta_{1, G}(t) = \phi_1^{(1)} \cdot q_{1, G}(t) + \phi_1^{(2)} \cdot q_{2, G}(t)$$
 $$\theta_{2, G}(t) = \phi_2^{(1)} \cdot q_{1, G}(t) + \phi_2^{(2)} \cdot q_{2, G}(t)$$
 
-Adopting the same for the particular solution, the task then reduces to finding $\bold{q_{1, P}(t)}$ and $\bold{q_{2, P}(t)}$, which we do by substituting these expressions back into the original equations of motion. For brevity I will remove the subscript for the particular solution and use $\bold{q_1(t)}$ and $\bold{q_2(t)}$ only.
+Adopting the same for the particular solution, the task then reduces to finding $\bold{q_{1, P}(t)}$ and $\bold{q_{2, P}(t)}$, which we do by substituting these expressions back into the original equations of motion. For brevity I will remove the subscript $\bold{P}$ for the particular solution and refer only to the modal coordinates, $\bold{q_1(t)}$ and $\bold{q_2(t)}$.
 
 For the substitution, we need first to calculate the second derivatives of the proposed functions:
 
