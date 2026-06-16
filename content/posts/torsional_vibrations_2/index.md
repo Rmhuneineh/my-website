@@ -172,11 +172,14 @@ Obviously, the 2 further equations are useful in cases where $\bold{i}$ is not e
 Hence, the final set of equations needed for the calculation of all the constants is:
 
 <u>**From initial conditions**</u>
+
 $$A_1^{(1)} + A_1^{(2)} = \theta_1(0)$$
-$$B_1^{(1)} + \omega_{n,2} \cdot B_1^{(2)} = \dot{\theta}_1(0)$$
-$$A_2^{(1)} + A_2^{(2)} = \theta_2(0)$$
-$$B_2^{(1)} + \omega_{n,2} \cdot B_2^{(2)} = \dot{\theta}_2(0)$$
+$$B_1^{(1)} + \omega_{n,2} \cdot B_1^{(2)} = \dot{\theta}\_1(0)$$
+$$A_2^{(1)} + A_2^{(2)} = \theta\_2(0)$$
+$$B_2^{(1)} + \omega_{n,2} \cdot B_2^{(2)} = \dot{\theta}\_2(0)$$
+
 <u>**From mode shapes**</u>
+
 $$A_1^{(1)} - A_2^{(1)} = 0$$
 $$\frac{I_1}{I_2} \cdot A_1^{(2)} + A_2^{(2)} = 0$$
 $$B_1^{(1)} - B_2^{(1)} = 0$$
@@ -414,7 +417,10 @@ How do we solve this issue? $\bold{\rarr}$ ***Decoupling***
 
 ### Modal Coordinates For The Rescue
 
-Finding a way to decouple the system is the first *tipping point* in this article. Frankly speaking, decoupling the system translates to finding a different representation of it in which each degree of freedom has its own separate equation of motion, without including the second degree of freedom in any of the terms, and vice versa. This is achieved by switching from ***physical coordinates*** to ***modal coordinates***.
+Finding a way to decouple the system is the first *tipping point* in this article. Frankly speaking, decoupling the system translates to finding a different representation of it in which each degree of freedom has its own separate equation of motion, without including the second degree of freedom in any of the terms, and vice versa. This is achieved by switching from ***physical coordinates*** to ***modal coordinates***. For the $\bold{r^{th}}$ mode, the modal coordinate is:
+
+$$q_r(t) = q_{r,G}(t) + q_{r,P}(t)$$
+
 
 Looking back at the general solution for free vibrations, we can actually try to reformulate it in modal coordinates by defining them as follows:
 
@@ -423,36 +429,36 @@ $$q_{2, G}(t) = A_{1, G}^{(2)} \cdot cos \left(\omega_{n,2} \cdot t \right) + B_
 
 Recalling also the mode shapes:
 
-$$\phi_1^{(1)} = 1, \space \phi_2^{(1)} = 1$$
-$$\phi_1^{(2)} = 1, \space \phi_2^{(2)} = -\frac{I_1}{I_2}$$
+$$\phi_1^{(1)} = 1, \quad \phi_2^{(1)} = 1$$
+$$\phi_1^{(2)} = 1, \quad \phi_2^{(2)} = -\frac{I_1}{I_2}$$
 
 Then the general solution can be reformulated as:
 
 $$\theta_{1, G}(t) = \phi_1^{(1)} \cdot q_{1, G}(t) + \phi_1^{(2)} \cdot q_{2, G}(t)$$
 $$\theta_{2, G}(t) = \phi_2^{(1)} \cdot q_{1, G}(t) + \phi_2^{(2)} \cdot q_{2, G}(t)$$
 
-Adopting the same for the particular solution, the task then reduces to finding $\bold{q_{1, P}(t)}$ and $\bold{q_{2, P}(t)}$, which we do by substituting these expressions back into the original equations of motion. For brevity I will remove the subscript $\bold{P}$ for the particular solution and refer only to the modal coordinates, $\bold{q_1(t)}$ and $\bold{q_2(t)}$.
+Adopting the same for the particular solution, the task then reduces to finding $\bold{q_{1, P}(t)}$ and $\bold{q_{2, P}(t)}$, which we do by substituting these expressions back into the original equations of motion.
 
 For the substitution, we need first to calculate the second derivatives of the proposed functions:
 
-$$\ddot{\theta}\_{1, P}(t) =  \phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)$$
-$$\ddot{\theta}\_{2, P}(t) = \phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)$$
+$$\ddot{\theta}\_{1, P}(t) =  \phi^{(1)}_1 \cdot \ddot{q}\_{1,P}(t) + \phi^{(2)}_1 \cdot \ddot{q}\_{2,P}(t)$$
+$$\ddot{\theta}\_{2, P}(t) = \phi^{(1)}_2 \cdot \ddot{q}\_{1,P}(t) + \phi^{(2)}_2 \cdot \ddot{q}\_{2,P}(t)$$
 
 Substituting this form into the set of equations of motion for the coupled system yields:
-$$I_1 \cdot [\phi^{(1)}_1 \cdot \ddot{q}\_1(t) + \phi^{(2)}_1 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_1 - \phi^{(1)}_2) \cdot q_1(t) + (\phi^{(2)}_1 - \phi^{(2)}_2) \cdot q_2(t)] = \tau_1(t)$$
-$$I_2 \cdot [\phi^{(1)}_2 \cdot \ddot{q}\_1(t) + \phi^{(2)}_2 \cdot \ddot{q}\_2(t)] + c \cdot [(\phi^{(1)}_2 - \phi^{(1)}_1) \cdot q_1(t) + (\phi^{(2)}_2 - \phi^{(2)}_1) \cdot q_2(t)] = \tau_2(t)$$
+$$I_1 \cdot [\phi^{(1)}_1 \cdot \ddot{q}\_{1,P}(t) + \phi^{(2)}_1 \cdot \ddot{q}\_{2,P}(t)] + c \cdot [(\phi^{(1)}_1 - \phi^{(1)}_2) \cdot q\_{1,P}(t) + (\phi^{(2)}_1 - \phi^{(2)}_2) \cdot q\_{2,P}(t)] = \tau_1(t)$$
+$$I_2 \cdot [\phi^{(1)}_2 \cdot \ddot{q}\_{1,P}(t) + \phi^{(2)}_2 \cdot \ddot{q}\_{2,P}(t)] + c \cdot [(\phi^{(1)}_2 - \phi^{(1)}_1) \cdot q\_{1,P}(t) + (\phi^{(2)}_2 - \phi^{(2)}_1) \cdot q\_{2,P}(t)] = \tau_2(t)$$
 
 At this point, we haven't achieved the decoupling yet (at least not completely). To achieve that, we'd need to multiply the first equation by '$\bold{\phi\_1\^{(r)}}$', the second equation by '$\bold{\phi\_2\^{(r)}}$', and then add both these results together. Applying that for the first mode, we will end up with the following:
 
-$$I_1 \cdot \ddot{q}\_1 + I_2 \cdot \ddot{q}\_1 + \underbrace{\left(I_1 \cdot \phi_1^{(1)} \cdot \phi_1^{(2)} + I_2 \cdot \phi_2^{(1)} \cdot \phi_2^{(2)}\right)}_{\text{cross term}} \cdot \ddot{q}\_2 + \text{stiffness terms} = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
+$$I_1 \cdot \ddot{q}\_{1,P} + I_2 \cdot \ddot{q}\_{1,P} + \underbrace{\left(I_1 \cdot \phi_1^{(1)} \cdot \phi_1^{(2)} + I_2 \cdot \phi_2^{(1)} \cdot \phi_2^{(2)}\right)}_{\text{cross term}} \cdot \ddot{q}\_{2,P} + \text{stiffness terms} = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
 
 I didn't include the ***stiffness terms*** explicitly because they experience the same effect the ***cross term*** experiences. What does the ***cross term*** experience? It experiences the effect of the ***orthogonality property*** of the modal shapes. What does that mean? If we take the cross term and substitute the values of the mode shapes, we get:
 
 $$I_1 \cdot 1 \cdot 1 + I_2 \cdot 1 \cdot \left(-\frac{I_1}{I_2} \right) = I_1 - I_1 = 0$$
 
-Within the orthogonality property of the mode shapes lies the crux leading to the necessity of using modal coordinates instead of physical coordinates for the decoupling. In fact, stripping off the last equation from the ***cross term*** and the ***stiffness terms***, we end up with an equation containing only $\bold{q\_1(t)}$:
+Within the orthogonality property of the mode shapes lies the crux leading to the necessity of using modal coordinates instead of physical coordinates for the decoupling. In fact, stripping off the last equation from the ***cross term*** and the ***stiffness terms***, we end up with an equation containing only $\bold{q\_{1,P}(t)}$:
 
-$$I_{eq}^{(1)} \cdot \ddot{q}\_1 = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
+$$I_{eq}^{(1)} \cdot \ddot{q}\_{1,P} = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
 
 where:
 
@@ -460,16 +466,53 @@ $$I_{eq}^{(1)} = I_1 + I_2$$
 
 Repeating the same operation for the second mode, we end up with the following:
 
-$$I_{eq}^{(2)} \cdot \ddot{q}\_2 + c_{eq}^{(2)} \cdot q_2 = \phi_1^{(2)} \cdot \tau_1(t) + \phi_2^{(2)} \cdot \tau_2(t)$$
+$$I_{eq}^{(2)} \cdot \ddot{q}\_{2,P} + c_{eq}^{(2)} \cdot q\_{2,P} = \phi_1^{(2)} \cdot \tau_1(t) + \phi_2^{(2)} \cdot \tau_2(t)$$
 
 where:
 
-$$I_{eq}^{(2)} = I_1 + \frac{I_1^2}{I_2}$$
-$$c_{eq}^{(2)} = I_{eq}^{(2)} \cdot \omega_{n,2}^2$$
+$$I_{eq}^{(2)} = I_1 + \frac{I_1^2}{I_2}, \quad c_{eq}^{(2)} = I_{eq}^{(2)} \cdot \omega_{n,2}^2$$
 
-At this point, we have 2 completely independent equations, one for each modal coordinate. The first doesn't have a stiffness term which is consistent with the rigid body mode having zero natural frequency. The second one is ***exactly*** a SDOF equation in '$\bold{q_2}$', identical in structure to what we solved in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1").
+At this point, we have 2 completely independent equations, one for each modal coordinate. The first doesn't have a stiffness term which is consistent with the rigid body mode having zero natural frequency. The second one is ***exactly*** a SDOF equation in '$\bold{q_{2,P}}$', identical in structure to what we solved in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1").
 
 The right-hand side of each equation is a weighted combination of the external torques, which is called the **modal force**. Applying this methodology for the case of free vibrations, we still get consistent results. For the first mode, its second derivative becomes equal to null; thus, leading to a first order polynomial solution. For the second mode, we get a second order ordinary differential equation where the second derivative of the response is proportional to the negative of the response; hence, leading to a harmonic solution.
+
+We can now adopt the following notation for the modal forces to simplify our solution:
+
+$$f_1(t) = \phi_1^{(1)} \cdot \tau_1(t) + \phi_2^{(1)} \cdot \tau_2(t)$$
+
+$$f_2(t) =  \phi_1^{(2)} \cdot \tau_1(t) + \phi_2^{(2)} \cdot \tau_2(t)$$
+
+Solving for the first modal coordinate:
+
+$$\ddot{q}\_{1,P}(t) = \frac{f_1(t)}{I_{eq}^{(1)}}$$
+
+Leading to:
+
+$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) dt + C_1 \cdot t + C_2$$
+
+Where $\bold{C_1}$ and $\bold{C_2}$ are constants of integration.
+
+The complete first modal coordinate solution becomes:
+
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) dt + C_1 \cdot t + C_2$$
+
+Note that the integration constants $\bold{C_1}$ and $\bold{C_2}$ are absorbed into the constants of the general solution, where the former merges with $\bold{B^{(1)}\_{1,G}}$ and the latter with $\bold{A^{(1)}\_{1,G}}$. This means that the particular solution alone does **not** need to satisfy any initial conditions and that the constants of integration are *implicitly* handled by the general solution.
+
+Therefore, for the particular solution specifically, we are free to set:
+
+$$C_1 = 0, \quad C_2 = 0$$
+
+thus, simplifying the double integrator to:
+
+$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) dt$$
+
+Solving for the second modal coordinate is very similar to solving a SDOF torsional system subjected to forced vibrations with the exception that the external load is a sum of two loads that could be of different forms. In [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1"), we calculated the response either analytically or numerically given that the external load is composed of a sum of loads, all of the same type. Realistically, the system can experience a combination of different load types simultaneously. The response would then be the sum of the contributions resulting from all load types, each calculated as if it were the only one acting on the system.
+
+### Python Code: Forced Vibrations
+
+<u>**First Modal Coordinate**</u>
+
+ 
 
 ---
 
