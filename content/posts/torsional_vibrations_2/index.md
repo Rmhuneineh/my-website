@@ -512,6 +512,9 @@ Solving for the second modal coordinate is very similar to solving a SDOF torsio
 
 <u>**First Modal Coordinate**</u>
 
+Solving for the first modal coordinate requires us to integrate the modal force twice. There are plenty of Python libraries capable of handling numerical integration; however, recall that for polynomial and harmonic excitations, we're expecting a representation of the excitation rather than an array on which we can perform numerical integration. Therefore, we will develop our own analytical integrator for polynomial and harmonic excitations, reserving the use of numerical integrators for arbitrary excitations in the form of measurements.
+
+
  
 
 ---
