@@ -510,6 +510,40 @@ Solving for the second modal coordinate is very similar to solving a SDOF torsio
 
 ### Python Code: Forced Vibrations
 
+Before coding the calculation of the modal coordinates, let's first start with the calculation of the mode shapes, equivalent inertias, and the equivalent stiffness. As shown in the previouis sections, these parameters are essential for eventually calculating the response of the system. We will include these calculations in the constructor of the class right where the calculation of the natural frequency resides:
+
+```python
+class TwoDOFTorsionalSystem:
+    
+    # Constructor to initialize the system parameters
+    def __init__(self, I_1=0, I_2=0, c=0):
+        self.I_1 = I_1
+        self.I_2 = I_2
+        self.c = c
+        if self.I_1 > 0 and self.I_2 > 0 and self.c > 0:
+            # Natural frequency
+            self.omega_n = self.calculate_natural_frequency()
+            # Mode shapes
+            self.phi_1_1 = 1
+            self.phi_1_2 = 1
+            self.phi_2_1 = 1
+            self.phi_2_2 = -self.I_1 / self.I_2
+            # Equivalent Inertia - Mode 1
+            self.Ieq_1 = self.I_1 + self.I_2
+            # Equivalent Inertia - Mode  2
+            self.Ieq_2 = self.I_1 + self.I_1**2 / self.I_2
+            # Equivalent Stiffness - Mode 2
+            self.ceq = self.Ieq_2 * self.omega_n ** 2
+        else:
+            self.omega_n = None
+            self.phi_1_1 = 0
+            self.phi_1_2 = 0
+            self.phi_2_1 = 0
+            self.phi_2_2 = 0
+    
+    # ... (previous code remains unchanged)
+```
+
 <u>**First Modal Coordinate**</u>
 
 Solving for the first modal coordinate requires us to integrate the modal force twice. There are plenty of Python libraries capable of handling numerical integration; however, recall that for polynomial and harmonic excitations, we're expecting a representation of the excitation rather than an array on which we can perform numerical integration. Therefore, we will develop our own analytical integrator for polynomial and harmonic excitations, reserving the use of numerical integrators for arbitrary excitations in the form of measurements.
