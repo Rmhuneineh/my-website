@@ -488,13 +488,13 @@ $$\ddot{q}\_{1,P}(t) = \frac{f_1(t)}{I_{eq}^{(1)}}$$
 
 Leading to:
 
-$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) dt + C_1 \cdot t + C_2$$
+$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt + C_1 \cdot t + C_2$$
 
 Where $\bold{C_1}$ and $\bold{C_2}$ are constants of integration.
 
 The complete first modal coordinate solution becomes:
 
-$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) dt + C_1 \cdot t + C_2$$
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt + C_1 \cdot t + C_2$$
 
 Note that the integration constants $\bold{C_1}$ and $\bold{C_2}$ are absorbed into the constants of the general solution, where the former merges with $\bold{B^{(1)}\_{1,G}}$ and the latter with $\bold{A^{(1)}\_{1,G}}$. This means that the particular solution alone does **not** need to satisfy any initial conditions and that the constants of integration are *implicitly* handled by the general solution.
 
@@ -504,7 +504,7 @@ $$C_1 = 0, \quad C_2 = 0$$
 
 thus, simplifying the double integrator to:
 
-$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) dt$$
+$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt$$
 
 Solving for the second modal coordinate is very similar to solving a SDOF torsional system subjected to forced vibrations with the exception that the external load is a sum of two loads that could be of different forms. In [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1"), we calculated the response either analytically or numerically given that the external load is composed of a sum of loads, all of the same type. Realistically, the system can experience a combination of different load types simultaneously. The response would then be the sum of the contributions resulting from all load types, each calculated as if it were the only one acting on the system.
 
@@ -546,10 +546,108 @@ class TwoDOFTorsionalSystem:
 
 <u>**First Modal Coordinate**</u>
 
-Solving for the first modal coordinate requires us to integrate the modal force twice. There are plenty of Python libraries capable of handling numerical integration; however, recall that for polynomial and harmonic excitations, we're expecting a representation of the excitation rather than an array on which we can perform numerical integration. Therefore, we will develop our own analytical integrator for polynomial and harmonic excitations, reserving the use of numerical integrators for arbitrary excitations in the form of measurements.
+Solving for the first modal coordinate requires us to integrate the first modal force twice. There are plenty of Python libraries capable of handling numerical integration; however, recall that for polynomial and harmonic excitations, we're expecting a representation of the excitation rather than an array on which we can perform numerical integration. Therefore, we will develop our own analytical integrator for polynomial and harmonic excitations, reserving the use of numerical integrators for arbitrary excitations in the form of measurements.
 
+The first modal force can be written as:
 
- 
+$$f_1(t) = \sum_{i=1}^{i=2} \phi_i^{(1)} \cdot \tau_i(t)$$
+
+Therefore, the first modal coordinate can be reformulated as:
+
+$$q_{1,P}(t) = \frac{1}{I_{eq}^{(1)}} \cdot \int \left(\int \sum_{i=1}^{i=2} \phi_i^{(1)} \cdot \tau_i(t) \cdot dt \right) \cdot dt$$
+
+However, the integration and the summation are independent operations and can thus be exchanged. Hence, we can reformulate the first modal coordinate to its final form:
+
+$$q_{1,P}(t) = \frac{1}{I_{eq}^{(1)}} \cdot \sum_{i=1}^{i=2} \left[\int \left(\int \phi_i^{(1)} \cdot \tau_i(t) \cdot dt \right) \cdot dt \right]$$
+
+This final form gives us the advantage of seeing things from a programming perspective where the summation represents a loop across the 2 different external loads. For each load, we'd need to check its ***type*** and perform the integration accordingly. We then sum both contributions coming from each load and divide the final result by the equivalent inertia corresponding to the first mode.
+
+Recalling the form of polynomial excitations:
+
+$$\tau_i(t) = \sum_{k_i=0}^{k_i = n_i} {a_{k_i} \cdot t^{n_i - k_i}}$$
+
+The double integral **without** considering any integration constants can be represented as:
+
+$$ \int \left(\int \tau_i(t) \cdot dt \right) \cdot dt = \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2} $$
+
+For the harmonic case, the excitation form is represented as:
+
+$$\tau_i(t) = \sum_{j=0}^{j=n_j} A_j \cdot sin \left(\omega_j \cdot t \right) + \sum_{k=0}^{k=m_k} B_k \cdot cos \left(\omega_k \cdot t \right)$$
+
+The double integral would then be:
+
+$$\int \left(\int \tau_i(t) \cdot dt \right) \cdot dt = - \sum_{j=0}^{j=n_j} \frac{A_j}{\omega_j^2} \cdot sin \left(\omega_j \cdot t \right) - \sum_{k=0}^{k=m_k} \frac{B_k}{\omega_k^2} \cdot cos \left(\omega_k \cdot t \right)$$
+
+Regarding arbitrary excitation, we simply use the ```np.trapz()``` function provided by the **Numpy** library. Eventually, the code related to the calculation of the first modal coordinate should look like the following:
+
+```Python
+# ... (previous code remains unchanged)
+
+# Method to simulate the time response of the system: Free Vibrations
+def simulate_time_response(self, initial_angle=np.array([0.0, 0.0]), initial_velocity=np.array([0.0, 0.0]), time_span=10,
+                            load_type=["poly", "poly"], tau_ext=np.array[[0], [0]], dtype=np.float16):
+    if self.omega_n is None:
+        raise ValueError("Natural frequency is not defined. Please set inertias and stiffness.")
+        
+    # Particular Solution
+    if load_type == "measurement":
+        # TODO: Solve q1 numerically
+        # Time array
+        t = tau_ext['time']
+        # Torque array on 1st DOF
+        tau_1 = tau_ext['load'][0]
+        # Torque array on 2nd DOF
+        tau_2 = tau_ext['load'][1]
+        # Modal force
+        f_1 = self.phi_1_1 * tau_1 + self.phi_2_1 * tau_2
+        # First integral
+        d_q1 = np.trapz(f_1, t)
+        # Second integral
+        q1_t = np.trapz(d_q1, t)  / self.Ieq_1
+    else:
+        # TODO: Check for poly or harmonic and solve q1 analytically
+        # Time array
+        t = np.linspace(0, time_span, 1000)
+        # Natural frequency
+        omega_n = self.omega_n
+        # Initialize First Modal Solution to 0s
+        q1P_t = np.zeros_like(t)
+        # Group mode shapes corresponding to first mode
+        phi_1 = np.array([self.phi_1_1, self.phi_2_1])
+        for j, (lt, te) in enumerate(zip(load_type, tau_ext)):
+            if lt == "poly":
+                # TODO: Solve q1 analytically for polynomial
+                q1P_i = np.zeros_like(te)
+                for i, coeff in enumerate(te):
+                    ni = len(te)-1
+                    q1P_i[i] = coeff / ((ni-i+2) * (ni-i+1)) # Coefficients of the first modal coordinate
+                    q1P_t = q1P_t + phi_1[j] * q1P_i[i] * t ** (ni-i+2)
+            elif lt == "harmonic":
+                # TODO: Solve q1 analytically for harmonic
+                if 'sin' in te:
+                    A_s = te['sin']['amplitude']
+                    omega_s = te['sin']['frequency'] * 2 * np.pi # Convert frequency from [Hz] to [rad/s]
+                    if len(A_s) != len(omega_s):
+                        raise Exception("Sin terms: amplitudes and frequencies must have the same length.")
+                    q1P_i = np.zeros_like(A_s) # Sin terms of particular solution initialization
+                    for i, (A_i, omega_i) in enumerate(zip(A_s, omega_s)):
+                        q1P_i[i] = -A_i / omega_i**2
+                        q1P_t = q1P_t + phi_1[j] * q1P_i[i] * np.sin(omega_i * t)
+                if 'cos' in te:
+                    B_c = te['cos']['amplitude']
+                    omega_c = te['sin']['frequency'] * 2 * np.pi # Convert frequency from [Hz] to [rad/s]
+                    if len(B_c) != len(omega_c):
+                        raise Exception("Cos terms: amplitudes and frequencies must have the same length.")
+                    q1P_i = np.zeros_like(B_c) # Sin terms of particular solution initialization
+                    for i, (B_i, omega_i) in enumerate(zip(B_c, omega_c)):
+                        q1P_i[i] = -B_i / omega_i**2
+                        q1P_t = q1P_t + phi_1[j] * q1P_i[i] * np.cos(omega_i * t)
+            else:
+                raise ValueError("Unsupported load type. Please specify 'poly' for polynomial excitation, or 'harmonic' for harmonic excitation.")
+        q1P_t = q1P_t / self.Ieq_1
+
+# ... (previous code remains unchanged)
+```
 
 ---
 
