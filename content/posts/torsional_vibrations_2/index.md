@@ -658,9 +658,133 @@ from scipy.integrate import cumulative_trapezoid
 # ... (previous code remains unchanged)
 ```
 
-<u>**Second Modal Coordinate**</u>
+<u>**Second Modal Coordinate & Complete Physical Coordinate**</u>
 
 As mentioned previously, it turns out that the second modal coordinate can be calculated by assuming it a SDOF torsional system acted upon by two external loads. Hence, our solution will rely on the code developed in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"), where we will calculate two different responses, one for each external load. Eventually, we will sum these 2 responses and declare it to be the solution for the second modal coordinate.
+
+Note that for both modal coordinates, the numerical solution is the **complete solution**. The analytical solution on the other hand represents only the **particular solution**. As a result, it's required to check whether the analytical solution has been calculated before reverting back to physical coordinates to understand whether the calculation of the general solution is necessary or not. Finally, the code for the ```simulate_time_response()``` function should like like this:
+
+```Python
+# Method to simulate the time response of the system: Free Vibrations
+    def simulate_time_response(self, initial_angle=np.array([0.0, 0.0]), initial_velocity=np.array([0.0, 0.0]), time_span=10,
+                               load_type=["poly", "poly"], tau_ext=np.array([[0], [0]]), dtype=np.float16):
+        if self.omega_n is None:
+            raise ValueError("Natural frequency is not defined. Please set inertias and stiffness.")
+        
+        # Group Mode Shapes
+        phi = np.array([[self.phi_1_1, self.phi_2_1], [self.phi_1_2, self.phi_2_2]])
+
+        # Define empty arrays for first modal coordinate
+        q_1_t = [] # Complete solution --> Numerical
+        qP_1_t = [] # Particular solution --> Analytical
+
+        # Define empty array for second modal coordinate
+        q_2_t = [] # Complete solution --> Numerical
+        qP_2_t = [] # Particular solution --> Analytical
+
+        # Define second modal coordinate as SDOF system
+        q2 = SDOFTorsionalSystem(inertia=self.Ieq_2, stiffness=self.ceq)
+
+        # Particular Solution
+        for i, lt in enumerate(load_type):
+            if lt == "measurement":                
+                # Time array
+                t = tau_ext[i]['time']
+                if len(q_1_t) == 0:
+                    q_1_t = np.zeros_like(t)
+                # Torque array on 1st DOF
+                tau_i = tau_ext[i]['load']
+                # Modal force
+                f_i_1 = phi[0][i] * tau_i
+                # First integral
+                d_q_i_1 = cumulative_trapezoid(f_i_1, t, initial=0)
+                # Second integral
+                q_i_1_t = cumulative_trapezoid(d_q_i_1, t, initial=0) / self.Ieq_1
+                q_1_t = q_1_t + q_i_1_t
+                # TODO: Solve q2 numerically
+                if len(q_2_t) == 0:
+                    q_2_t = np.zeros_like(t)
+                # Modal force
+                f_i_2 = phi[1][i] * tau_i
+                # Solve for second modal coordinate
+                t_i, q_2_i = q2.simulate_time_response(load_type=lt, tau_ext={'time': t, 'load': f_i_2})
+                q_2_t = q_2_t + q_2_i
+            else:
+                # Time array
+                t = np.linspace(0, time_span, 1000)
+                # Natural frequency
+                omega_n = self.omega_n
+                # Initialize First Modal Solution to 0s
+                if len(qP_1_t) == 0:
+                    qP_1_t = np.zeros_like(t)
+                # Initialize Second Modal Solution to 0s
+                if len(qP_2_t) == 0:
+                    qP_2_t = np.zeros_like(t)
+                if lt == "poly":
+                    qP_1_j = np.zeros_like(tau_ext[i])
+                    for j, coeff in enumerate(tau_ext[i]):
+                        nj = len(tau_ext[i])-1
+                        qP_1_j[j] = coeff / ((nj-j+2) * (nj-j+1)) # Coefficients of the first modal coordinate
+                        qP_1_t = qP_1_t + phi[0][i] * qP_1_j[j] * t ** (nj-j+2)
+                    # TODO: Solve q2 analytically for polynomial excitations
+                    t_i, qP_2_i = q2.simulate_time_response(load_type=lt, tau_ext=tau_ext[i])
+                    qP_2_t = qP_2_t + qP_2_i
+                elif lt == "harmonic":
+                    if 'sin' in tau_ext[i]:
+                        A_s = tau_ext[i]['sin']['amplitude']
+                        omega_s = tau_ext[i]['sin']['frequency'] * 2 * np.pi # Convert frequency from [Hz] to [rad/s]
+                        if len(A_s) != len(omega_s):
+                            raise Exception("Sin terms: amplitudes and frequencies must have the same length.")
+                        qP_1_j = np.zeros_like(A_s) # Sin terms of particular solution initialization
+                        for j, (A_j, omega_j) in enumerate(zip(A_s, omega_s)):
+                            qP_1_j[j] = -A_j / omega_j**2
+                            qP_1_t = qP_1_t + phi[0][i] * qP_1_j[j] * np.sin(omega_j * t)
+                    if 'cos' in tau_ext[i]:
+                        B_c = tau_ext[i]['cos']['amplitude']
+                        omega_c = tau_ext[i]['cos']['frequency'] * 2 * np.pi # Convert frequency from [Hz] to [rad/s]
+                        if len(B_c) != len(omega_c):
+                            raise Exception("Cos terms: amplitudes and frequencies must have the same length.")
+                        qP_1_j = np.zeros_like(B_c) # Sin terms of particular solution initialization
+                        for j, (B_j, omega_j) in enumerate(zip(B_c, omega_c)):
+                            qP_1_j[j] = -B_j / omega_j**2
+                            qP_1_t = qP_1_t + phi[0][i] * qP_1_j[j] * np.cos(omega_j * t)
+                    # TODO: Solve q2 analytically for harmonic excitations
+                    t_i, qP_2_i = q2.simulate_time_response(load_type=lt, tau_ext=tau_ext[i])
+                    qP_2_t = qP_2_t + qP_2_i
+                else:
+                    raise ValueError("Unsupported load type. Please specify 'poly' for polynomial excitation, or 'harmonic' for harmonic excitation.")
+        
+        # Check for any particular solution to calculate the general solution
+        if len(qP_1_t) > 0:
+            qP_1_t = qP_1_t / self.Ieq_1
+            # General Solution - Physical Coordinates
+            self.A = np.array([
+                [1, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, self.omega_n, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, self.omega_n],
+                [1, 0, 0, 0, -1, 0, 0, 0],
+                [0, self.I_1/self.I_2, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, -1, 0],
+                [0, 0, 0, self.I_1/self.I_2, 0, 0, 0, 1]
+            ])
+            self.b = np.array([initial_angle[0], initial_velocity[0], initial_angle[1], initial_velocity[1], 0, 0, 0, 0])
+            A_1_1, A_1_2, B_1_1, B_1_2, A_2_1, A_2_2, B_2_1, B_2_2 = np.linalg.solve(self.A, self.b)
+            t = np.linspace(0, time_span, 1000)
+            theta_1_G = A_1_1 + B_1_1 * t + A_1_2 * np.cos(self.omega_n * t) + B_1_2 * np.sin(self.omega_n * t)
+            theta_2_G = A_2_1 + B_2_1 * t + A_2_2 * np.cos(self.omega_n * t) + B_2_2 * np.sin(self.omega_n * t)
+            # Particular Solution - From Modal to Physical Coordinates
+            theta_1_P = self.phi_1_1 * qP_1_t + self.phi_1_2 * qP_2_t
+            theta_2_P = self.phi_2_1 * qP_1_t + self.phi_2_2 * qP_2_t
+            # Complete Solution
+            theta_1 = theta_1_G + theta_1_P
+            theta_2 = theta_2_G + theta_2_P
+        else:
+            # Complete Solution - From Modal to Physical Coordinates
+            theta_1 = self.phi_1_1 * q_1_t + self.phi_1_2 * q_2_t
+            theta_2 = self.phi_2_1 * q_1_t + self.phi_2_2 * q_2_t
+        return t, theta_1, theta_2
+```
 
 ---
 
