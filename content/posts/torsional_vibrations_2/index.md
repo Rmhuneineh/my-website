@@ -662,7 +662,9 @@ from scipy.integrate import cumulative_trapezoid
 
 As mentioned previously, it turns out that the second modal coordinate can be calculated by assuming it a SDOF torsional system acted upon by two external loads. Hence, our solution will rely on the code developed in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"), where we will calculate two different responses, one for each external load. Eventually, we will sum these 2 responses and declare it to be the solution for the second modal coordinate.
 
-Note that for both modal coordinates, the numerical solution is the **complete solution**. The analytical solution on the other hand represents only the **particular solution**. As a result, it's required to check whether the analytical solution has been calculated before reverting back to physical coordinates to understand whether the calculation of the general solution is necessary or not. Finally, the code for the ```simulate_time_response()``` function should like like this:
+Note that for both modal coordinates, the numerical solution is the **complete solution**. The analytical solution on the other hand represents only the **particular solution**. As a result, it's required to check whether the analytical solution has been calculated before reverting back to physical coordinates to understand whether the calculation of the general solution is necessary or not. This adds a constraint preventing the simulation of a ***mixed*** load combination where **only one** of the excitations is a "*measurement*". In case the user wants to simulate a condition where only one of the loads is a measurement, it's required that the second analytical load is generated as a measurement and passed to the function as such.
+
+Finally, the code for the ```simulate_time_response()``` function should like like this:
 
 ```Python
 # Method to simulate the time response of the system: Free Vibrations
@@ -785,6 +787,9 @@ Note that for both modal coordinates, the numerical solution is the **complete s
             theta_2 = self.phi_2_1 * q_1_t + self.phi_2_2 * q_2_t
         return t, theta_1, theta_2
 ```
+
+### Python Code: Forced Vibrations Examples
+
 
 ---
 
