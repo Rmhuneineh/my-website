@@ -960,25 +960,25 @@ class SDOFTorsionalSystem:
             elif load_type == "harmonic":
                 # Initialize Particular Solution
                 thetaP_t = np.zeros_like(t)
+                thetaPdot_0 = 0
                 # Sin terms
                 if 'sin' in tau_ext:
                     A_s = tau_ext['sin']['amplitude']
                     omega_s = tau_ext['sin']['frequency'] * 2 * np.pi # Convert frequency from Hz to rad/s
                     if len(A_s) != len(omega_s):
-                        raise Exception("Sin terms: amplitudes and freuencies must have the same length.")
+                        raise Exception("Sin terms: amplitudes and frequencies must have the same length.")
                     theta_s_i = np.zeros_like(A_s) # Sin terms of particular solution initialization
                     for i, (A_i, omega_i) in enumerate(zip(A_s, omega_s)):
                         theta_s_i[i] = A_i / (self.c - self.I * omega_i ** 2) # Apply derived formula
                         thetaP_t = thetaP_t + theta_s_i[i] * np.sin(omega_i * t) # Add sin terms
-                    thetaPdot_0 = np.sum(theta_s_i)  # Initial value of the derivative of the particular solution at t=0
-                else:
-                    thetaPdot_0 = 0
+                        thetaPdot_0 = thetaPdot_0 + theta_s_i[i]*omega_i  # Initial value of the derivative of the particular solution at t=0
+
                 # Cos terms
                 if 'cos' in tau_ext:
                     B_c = tau_ext['cos']['amplitude']
                     omega_c = tau_ext['cos']['frequency'] * 2 * np.pi # Convert frequency from Hz to rad/s
                     if len(B_c) != len(omega_c):
-                        raise Exception("Cos terms: amplitudes and freuencies must have the same length.")
+                        raise Exception("Cos terms: amplitudes and frequencies must have the same length.")
                     theta_c_j = np.zeros_like(B_c) # Cos terms of particular solution initialization
                     for j, (B_j, omega_j) in enumerate(zip(B_c, omega_c)):
                         theta_c_j[j] = B_j / (self.c - self.I * omega_j ** 2) # Apply derived formula

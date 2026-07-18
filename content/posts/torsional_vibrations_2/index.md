@@ -788,8 +788,55 @@ Finally, the code for the ```simulate_time_response()``` function should like li
         return t, theta_1, theta_2
 ```
 
-### Python Code: Forced Vibrations Examples
+### Python Code: Examples on Forced Vibrations
 
+In the following, a set of examples portraying different ways of exciting a 2-DOF system will be presented. Specifically, the Python code required to define the excitations and pass them to our ```simulate_time_response()``` function will be presented, as well as the graphs showing the time response of physical coordinates of both degrees of freedom under the said excitations.
+
+<u>**Polynomial Excitations**</u>
+
+In this example, we consider the following excitations:
+
+$$\tau_1(t) = 1.1 \cdot t + 2$$
+
+$$\tau_2(t) = -t - 2.2$$
+
+To define these excitations and pass them:
+
+```Python
+# Define External Excitations
+tau_1 = np.array([1.1, 2], dtype=np.float16) # 1.1*t + 2
+tau_2 = np.array([-1, -2.2], dtype=np.float16) # -t - 2.2
+# Calculate solution
+t, theta_1, theta_2 = S.simulate_time_response(load_type=np.array(['poly', 'poly']), tau_ext=[tau_1, tau_2])
+
+```
+
+<figure id="fig:2_degree_of_freedom_forcedVibration_time_response_PolyPoly">
+    <img src="03_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Poly Excitation">
+    <figcaption>Figure 3 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Poly Excitation</figcaption>
+</figure>
+
+<u>**Harmonic Excitations**</u>
+
+In this example, we consider the harmonic excitations defined by the following code block:
+
+```Python
+# Define External Excitations
+sin_load = {'amplitude': np.linspace(1,2,5), 'frequency': np.linspace(1,4,5)}
+cos_load = {'amplitude': np.linspace(0.4, 1.2,10), 'frequency': np.linspace(8,9, 10)}
+tau_1 = {'sin': sin_load, 'cos': cos_load}
+
+sin_load = {'amplitude': np.array([6], dtype=np.float16), 'frequency': np.array([15], dtype=np.float16)}
+cos_load = {'amplitude': np.array([7], dtype=np.float16), 'frequency': np.array([0.1], dtype=np.float16)}
+tau_2 = {'sin': sin_load, 'cos': cos_load}
+# Calculate solution
+t, theta_1, theta_2 = S.simulate_time_response(load_type=np.array(['harmonic', 'harmonic']), tau_ext=[tau_1, tau_2])
+```
+
+<figure id="fig:2_degree_of_freedom_forcedVibration_time_response_HarmonicHarmonic">
+    <img src="04_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Harmonic-Harmonic Excitation">
+    <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Harmonic-Harmonic Excitation</figcaption>
+</figure>
 
 ---
 
