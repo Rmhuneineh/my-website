@@ -488,25 +488,13 @@ $$\ddot{q}\_{1,P}(t) = \frac{f_1(t)}{I_{eq}^{(1)}}$$
 
 Leading to:
 
-$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt + C_1 \cdot t + C_2$$
-
-Where $\bold{C_1}$ and $\bold{C_2}$ are constants of integration.
+$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt$$
 
 The complete first modal coordinate solution becomes:
 
-$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt + C_1 \cdot t + C_2$$
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt$$
 
-Note that the integration constants $\bold{C_1}$ and $\bold{C_2}$ are absorbed into the constants of the general solution, where the former merges with $\bold{B^{(1)}\_{1,G}}$ and the latter with $\bold{A^{(1)}\_{1,G}}$. This means that the particular solution alone does **not** need to satisfy any initial conditions and that the constants of integration are *implicitly* handled by the general solution.
-
-Therefore, for the particular solution specifically, we are free to set:
-
-$$C_1 = 0, \quad C_2 = 0$$
-
-thus, simplifying the double integrator to:
-
-$$q_{1,P}(t) = \int \left(\int \frac{f_1(t)}{I_{eq}^{(1)}} \cdot dt \right) \cdot dt$$
-
-Solving for the second modal coordinate is very similar to solving a SDOF torsional system subjected to forced vibrations with the exception that the external load is a sum of two loads that could be of different forms. In [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1"), we calculated the response either analytically or numerically given that the external load is composed of a sum of loads, all of the same type. Realistically, the system can experience a combination of different load types simultaneously. The response would then be the sum of the contributions resulting from all load types, each calculated as if it were the only one acting on the system.
+Solving for the second modal coordinate is very similar to solving a SDOF torsional system subjected to forced vibrations with the exception that the external load is a sum of two loads that could be of different forms. In [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 1"), we calculated the response either analytically or numerically given that the external load is composed of a sum of loads, all of the same type. Realistically, the system can experience a combination of different load types simultaneously. The response would then be the sum of the contributions resulting from all load types, each calculated as if its corresponding load were the only one acting on the system.
 
 ### Python Code: Forced Vibrations
 
@@ -562,13 +550,21 @@ $$q_{1,P}(t) = \frac{1}{I_{eq}^{(1)}} \cdot \sum_{i=1}^{i=2} \left[\int \left(\i
 
 This final form gives us the advantage of seeing things from a programming perspective where the summation represents a loop across the 2 different external loads. For each load, we'd need to check its ***type*** and perform the integration accordingly. We then sum both contributions coming from each load and divide the final result by the equivalent inertia corresponding to the first mode.
 
-Recalling the form of polynomial excitations:
+In case the load type is **Polynomial**, we recall the representation as:
 
 $$\tau_i(t) = \sum_{k_i=0}^{k_i = n_i} {a_{k_i} \cdot t^{n_i - k_i}}$$
 
-The double integral **without** considering any integration constants can be represented as:
+The double integral of a polynomial is calculated as:
 
-$$ \int \left(\int \tau_i(t) \cdot dt \right) \cdot dt = \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2} $$
+$$ \int \left(\int \tau_i(t) \cdot dt \right) \cdot dt = \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2}  + C_1 \cdot t + C_2$$
+
+Where $\bold{C_1}$ and $\bold{C_2}$ are integration constants. In this case, the first modal coordinate is represented as:
+
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2}  + C_1 \cdot t + C_2$$
+
+It's clear however that the integration constants can be merged with the constants resulting from the general solution which are calculated based on initial conditions! Therefore, we can safely set $\bold{C_1 = 0 \text{ and } C_2 = 0}$, resulting in the final form of the first modal coordinate when subjected to polynomial excitations:
+
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2}$$
 
 For the harmonic case, the excitation form is represented as:
 
@@ -577,6 +573,10 @@ $$\tau_i(t) = \sum_{j=0}^{j=n_j} A_j \cdot sin \left(\omega_j \cdot t \right) + 
 The double integral would then be:
 
 $$\int \left(\int \tau_i(t) \cdot dt \right) \cdot dt = - \sum_{j=0}^{j=n_j} \frac{A_j}{\omega_j^2} \cdot sin \left(\omega_j \cdot t \right) - \sum_{k=0}^{k=m_k} \frac{B_k}{\omega_k^2} \cdot cos \left(\omega_k \cdot t \right)$$
+
+In this case, the first modal coordinate is represented as:
+
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t - \sum_{j=0}^{j=n_j} \frac{A_j}{\omega_j^2} \cdot sin \left(\omega_j \cdot t \right) - \sum_{k=0}^{k=m_k} \frac{B_k}{\omega_k^2} \cdot cos \left(\omega_k \cdot t \right)$$
 
 Regarding arbitrary excitation, we simply use the ```cumulative_trapezoid()``` function provided by the ***```Scipy.integrate```*** library. Eventually, the code related to the calculation of the first modal coordinate should look like the following:
 
