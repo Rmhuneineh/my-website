@@ -560,11 +560,11 @@ $$ \int \left(\int \tau_i(t) \cdot dt \right) \cdot dt = \sum_{k_i=0}^{k_i=n_i} 
 
 Where $\bold{C_1}$ and $\bold{C_2}$ are integration constants. In this case, the first modal coordinate is represented as:
 
-$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2}  + C_1 \cdot t + C_2$$
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \frac{1}{I_{eq}^{(1)}} \cdot \left[\sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2}  + C_1 \cdot t + C_2 \right]$$
 
 It's clear however that the integration constants can be merged with the constants resulting from the general solution which are calculated based on initial conditions! Therefore, we can safely set $\bold{C_1 = 0 \text{ and } C_2 = 0}$, resulting in the final form of the first modal coordinate when subjected to polynomial excitations:
 
-$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2}$$
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t + \frac{1}{I_{eq}^{(1)}} \cdot \sum_{k_i=0}^{k_i=n_i} \frac{a_{k_i}}{\left(n_i-k_i+2 \right) \cdot \left(n_i-k_i+1 \right)} \cdot t^{n_i-k_i+2}$$
 
 For the harmonic case, the excitation form is represented as:
 
@@ -576,7 +576,39 @@ $$\int \left(\int \tau_i(t) \cdot dt \right) \cdot dt = - \sum_{j=0}^{j=n_j} \fr
 
 In this case, the first modal coordinate is represented as:
 
-$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t - \sum_{j=0}^{j=n_j} \frac{A_j}{\omega_j^2} \cdot sin \left(\omega_j \cdot t \right) - \sum_{k=0}^{k=m_k} \frac{B_k}{\omega_k^2} \cdot cos \left(\omega_k \cdot t \right)$$
+$$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t - \frac{1}{I_{eq}^{(1)}} \cdot \sum_{j=0}^{j=n_j} \frac{A_j}{\omega_j^2} \cdot sin \left(\omega_j \cdot t \right) - \frac{1}{I_{eq}^{(1)}} \cdot \sum_{k=0}^{k=m_k} \frac{B_k}{\omega_k^2} \cdot cos \left(\omega_k \cdot t \right)$$
+
+Note that for the harmonic excitation case, the terms don't vanish at $\bold(t=0)$. Therefore, calculating the constants for the general solution doesn't rely on the initial conditions only but also on the initial value of the excitation and its first derivative:
+
+$$q_1(0) = A_{1,G}^{(1)} - q_{1,P}(0)$$
+
+$$\dot{q}\_1(0) = B_{1,G}^{(1)} - \dot{q}_{1,P}(0)$$
+
+Given that we will solve the second modal coordinate with all initial conditions set to null, it results that:
+
+$$\theta_1(0) = \phi_1^{(1)} \cdot q_1(0) \quad , \quad \dot{\theta}_1(0) = \phi_1^{(1)} \cdot \dot{q}_1(0) $$
+
+
+$$\theta_2(0) = \phi_2^{(1)} \cdot q_1(0) \quad , \quad \dot{\theta}_2(0) = \phi_2^{(1)} \cdot \dot{q}_1(0)$$
+
+Recall that the first mode is rigid body motion leading to $\bold{\phi_1^{(1)} = \phi_2^{(1)} = 1}$, this means we can simply get rid of the mode shape for simplicity.
+
+This then leads to changing the vector $\bold{b}$ from our matrix form of calculating the constants so that it becomes:
+
+$$
+b= 
+\begin{Bmatrix}
+\theta_1(0) + q_{1,P}(0) \\\
+\dot{\theta}\_1(0) + \dot{q}\_{1,P}(0) \\\
+\theta_2(0) + q_{1,P}(0) \\\
+\dot{\theta}\_2(0) + \dot{q}\_{1,P}(0) \\\
+0 \\\
+0 \\\
+0 \\\
+0 \\\
+\end{Bmatrix}
+$$
+
 
 Regarding arbitrary excitation, we simply use the ```cumulative_trapezoid()``` function provided by the ***```Scipy.integrate```*** library. Eventually, the code related to the calculation of the first modal coordinate should look like the following:
 
