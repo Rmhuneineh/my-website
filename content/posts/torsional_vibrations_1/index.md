@@ -662,15 +662,22 @@ One could think of applying curve-fitting techniques to find an analytical expre
 The simplest numerical method to calculate the particular solution is the finite difference method, which involves discretizing the time domain and approximating the derivatives in the equation of motion using finite differences. This allows us to iteratively calculate the angular displacement, velocity, and acceleration at each time step based on the previous values and the external excitation at that time step.
 
 Put simply, whether the external excitation is given by an analytical expression or a discrete set of data points, initial conditions are required to solve the equation of motion as we've seen in the previous sections regarding analytical solutions. In case of numerical solutions, the initial angular displacement and angular velocity are set to null to solve the particular solution; whereas the given initial conditions will be considered in the calculation of the general solution only.
+
+Therefore, the initial angular acceleration is calculated by considering the initial value of the external load:
+
 $$\ddot{\theta}\_P(t_0) = \frac{\tau_{ext}(t_0)}{I}$$
 
 Then, the angular velocity and displacement at the next time step can be calculated using finite difference approximations:
 $$\dot{\theta}\_P(t_1) = \ddot{\theta}\_P(t_0) \Delta t$$
 $$\theta_P(t_1) = \theta_P(t_0) + \dot{\theta}\_P(t_0) \Delta t$$
 
+And eventually the angular acceration at any time step will be calculated as:
+
+$$\ddot{\theta}\_P(t_i) = \frac{\tau_{ext}(t_i) - c \cdot \theta(t_{i})}{I}$$
+
 Where: $\bold{\Delta t} = t_1 - t_0$ is the time step.
 
-This process can be repeated iteratively for each subsequent time step to calculate the angular displacement, velocity and acceleration, thus obtaining an approximation of the particular solution of the system subjected to the arbitrary external excitation.
+This process is repeated iteratively for each subsequent time step to calculate the angular displacement, velocity and acceleration, thus obtaining an approximation of the particular solution of the system subjected to the arbitrary external excitation.
 
 The code modification required to implement this approach urges to first check whether `load_type` is `"measurement"`. In case it is, then we would expect `tau_ext` to be a dictionary containing the `time` array $\bold{t_i}$ and the corresponding `load` array $\bold{\tau_{ext}(t_i)}$
 
