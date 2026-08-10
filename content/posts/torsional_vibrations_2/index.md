@@ -701,6 +701,111 @@ from scipy.integrate import cumulative_trapezoid
 
 As mentioned previously, it turns out that the second modal coordinate can be calculated by assuming it a SDOF torsional system acted upon by two external loads. Hence, our solution will rely on the code developed in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"), where we will calculate two different responses, one for each external load. Eventually, we will sum these 2 responses and declare it to be the solution for the second modal coordinate.
 
+The code for the SDOF system has been modified to suit the styling adopted in this part where the angular diaplacement, velocity, and acceleration are calculated within the class (numerically or analytically), and where almost all parameters defined in the class are members:
+
+```Python
+class SDOFTorsionalSystem:
+
+    # Constructor to initialize the system parameters
+    def __init__(self, inertia=0, stiffness=0):
+        self.I = inertia
+        self.c = stiffness
+        if self.I > 0 and self.c > 0:
+            self.omega_n = self.calculate_natural_frequency()
+        else:
+            self.omega_n = None
+
+    # Method to calculate the natural frequency of the system
+    def calculate_natural_frequency(self):
+        return np.sqrt(self.c / self.I)
+
+    # Method to simulate the time response of the system
+    # NOTE: modified to account for any harmonic excitation
+    def simulate_time_response(self, initial_angle=0, initial_velocity=0, time_span=10, load_type="poly", tau_ext=np.array([0], dtype=np.float16)):
+        if self.omega_n is None:
+            raise ValueError("Natural frequency is not defined. Please set inertia and stiffness.")
+        
+        if load_type == "measurement":
+            # Time array
+            self.t = tau_ext['time']
+            # Torque array
+            tau_ti = tau_ext['load']
+            # Initialize array for angular displacement, velocity, and acceleration to zeros
+            self.thetaP_t = np.zeros_like(self.t)
+            self.thetaP_t_dot = np.zeros_like(self.t)
+            self.thetaP_t_ddot = np.zeros_like(self.t)
+            # Iteratively calculate the angular displacement at each time step
+            for i in range(len(self.t)-1):
+                # Calculate the angular acceleration using the equation of motion
+                self.thetaP_t_ddot[i] = (tau_ti[i] - self.c * self.thetaP_t[i]) / self.I
+                # Update angular velocity and displacement using finite difference approximation
+                dt = self.t[i+1] - self.t[i]
+                self.thetaP_t_dot[i+1] = self.thetaP_t_dot[i] + self.thetaP_t_ddot[i] * dt
+                self.thetaP_t[i+1] = self.thetaP_t[i] + self.thetaP_t_dot[i+1] * dt
+            self.thetaP_t_dot[-1] = self.thetaP_t_dot[-2]
+            self.thetaP_t_ddot[-1] = self.thetaP_t_ddot[-2]
+        else:
+            # Time array
+            self.t = np.linspace(0, time_span, 1000)
+            if load_type == "poly":
+                n = len(tau_ext) - 1 # Polynomial Order
+                thetaP_i = np.zeros_like(tau_ext)
+                self.thetaP_t = np.zeros_like(self.t)
+                self.thetaP_t_dot = np.zeros_like(self.t)
+                self.thetaP_t_ddot = np.zeros_like(self.t)
+                for i, tau_i in enumerate(tau_ext):
+                    if i < 2:
+                        thetaP_i[i] = tau_i / self.c # Equation of coefficient for i in [0, 1]
+                    else:
+                        thetaP_i[i] = (tau_i - self.I*(n-i+2)*(n-i+1)*thetaP_i[i-2]) / self.c # Equation of coefficient for i in [2, n]
+                    self.thetaP_t = self.thetaP_t + thetaP_i[i] * self.t ** (n-i) # Equation of particular solution as summation of
+                    self.thetaP_t_dot = self.thetaP_t_dot + (n-i) * thetaP_i[i] * self.t ** (n-i-1) if i <= n-1 else self.thetaP_t_dot
+                    self.thetaP_t_ddot = self.thetaP_t_ddot + (n-i)*(n-i-1) * thetaP_i[i] * self.t ** (n-i-2) if i <= n-2 else self.thetaP_t_ddot
+            elif load_type == "harmonic":
+                # Initialize Particular Solution
+                self.thetaP_t = np.zeros_like(self.t)
+                self.thetaP_t_dot = np.zeros_like(self.t)
+                self.thetaP_t_ddot = np.zeros_like(self.t)
+                # Sin terms
+                if 'sin' in tau_ext:
+                    A_s = tau_ext['sin']['amplitude']
+                    omega_s = tau_ext['sin']['frequency'] * 2 * np.pi # Convert frequency from Hz to rad/s
+                    if len(A_s) != len(omega_s):
+                        raise Exception("Sin terms: amplitudes and frequencies must have the same length.")
+                    theta_s_i = np.zeros_like(A_s) # Sin terms of particular solution initialization
+                    for i, (A_i, omega_i) in enumerate(zip(A_s, omega_s)):
+                        theta_s_i[i] = A_i / (self.c - self.I * omega_i ** 2) # Apply derived formula
+                        self.thetaP_t = self.thetaP_t + theta_s_i[i] * np.sin(omega_i * self.t) # Add sin terms
+                        self.thetaP_t_dot = self.thetaP_t_dot + theta_s_i[i] * omega_i * np.cos(omega_i * self.t)
+                        self.thetaP_t_ddot = self.thetaP_t_ddot - theta_s_i[i] * omega_i**2 * np.sin(omega_i * self.t)
+                # Cos terms
+                if 'cos' in tau_ext:
+                    B_c = tau_ext['cos']['amplitude']
+                    omega_c = tau_ext['cos']['frequency'] * 2 * np.pi # Convert frequency from Hz to rad/s
+                    if len(B_c) != len(omega_c):
+                        raise Exception("Cos terms: amplitudes and frequencies must have the same length.")
+                    theta_c_j = np.zeros_like(B_c) # Cos terms of particular solution initialization
+                    for j, (B_j, omega_j) in enumerate(zip(B_c, omega_c)):
+                        theta_c_j[j] = B_j / (self.c - self.I * omega_j ** 2) # Apply derived formula
+                        self.thetaP_t = self.thetaP_t + theta_c_j[j] * np.cos(omega_j * self.t) # Add cos terms
+                        self.thetaP_t_dot = self.thetaP_t_dot - theta_c_j[j] * omega_j * np.sin(omega_j * self.t)
+                        self.thetaP_t_ddot = self.thetaP_t_ddot - theta_c_j[j] * omega_j**2 * np.cos(omega_j * self.t)
+            else:
+                raise ValueError("Unsupported load type. Please specify 'poly' for polynomial excitation, or 'harmonic' for harmonic excitation.")
+
+        # Calculate the constants A and B based on initial conditions
+        self.A = initial_angle - self.thetaP_t[0]  # Adjusting for the particular solution at t=0
+        self.B = (initial_velocity - self.thetaP_t_dot[0]) / self.omega_n  # Adjusting for the derivative of the particular solution at t=0
+        # General solution for the homogeneous part
+        self.thetaG_t = self.A * np.cos(self.omega_n * self.t) + self.B * np.sin(self.omega_n * self.t)
+        self.thetaG_t_dot = (-self.A * np.sin(self.omega_n * self.t) + self.B * np.cos(self.omega_n * self.t)) * self.omega_n
+        self.thetaG_t_ddot = (-self.A * np.cos(self.omega_n * self.t) - self.B * np.sin(self.omega_n * self.t)) * self.omega_n**2
+        # Time response using the analytical solution for the specified load type
+        self.theta_t = self.thetaG_t + self.thetaP_t
+        self.theta_t_dot = self.thetaG_t_dot + self.thetaP_t_dot
+        self.theta_t_ddot = self.thetaG_t_ddot + self.thetaP_t_ddot
+```
+
 Finally, the code for the ```simulate_time_response()``` function should like like this:
 
 ```Python
@@ -1060,6 +1165,187 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     <img src="04_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Harmonic-Harmonic Excitation">
     <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Harmonic-Harmonic Excitation</figcaption>
 </figure>
+
+<u>**Mixed Excitations - Polynomial + Harmonic**</u>
+
+In this example, we see how our powerful tool can deal with different types of excitation, each applied on a degree of freedom. In this case, a polynomial excitation is applied on the first degree of freedom while a harmonic excitation is applied on the second degree of freedom:
+
+```Python
+# Define External Forces
+tau_1 = np.array([0.01, 0.005, 0.1], dtype=np.float16) # -0.1t^2 + 0.5t + 1
+sin_load = {'amplitude': np.array([0.1], dtype=np.float16), 'frequency': np.array([15], dtype=np.float16)}
+cos_load = {'amplitude': np.array([0.6], dtype=np.float16), 'frequency': np.array([0.1], dtype=np.float16)}
+tau_2 = {'sin': sin_load, 'cos': cos_load}
+# Calculate solution
+S.simulate_time_response(load_type=np.array(['poly', 'harmonic']), tau_ext=[tau_1, tau_2])
+
+# Plotting the time response
+fig, axes = plt.subplots(4, 1, figsize=(15, 10))
+fig.suptitle('Time Response of 2DOF Torsional System', fontsize=16)
+# Angular Displacement vs Time
+ax2 = axes[0].twinx()
+axes[0].plot(S.t, S.theta_1, label='DOF 1')
+ax2.plot(S.t, S.theta_2, label='DOF 2', color='#ff7f0e')
+axes[0].set_xlabel('Time [s]')
+axes[0].set_ylabel('Angular Displacement 1 [rad]')
+ax2.set_ylabel('Angular Displacement 2 [rad]')
+y1_min, y1_max = axes[0].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[0].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[0].set_title('Angular Displacement vs Time')
+axes[0].grid(True)
+
+ax2 = axes[1].twinx()
+axes[1].plot(S.t, S.theta_1_dot)
+ax2.plot(S.t, S.theta_2_dot, color='#ff7f0e')
+axes[1].set_xlabel('Time [s]')
+axes[1].set_ylabel('Angular Velocity 1 [rad/s]')
+ax2.set_ylabel('Angular Velocity 2 [rad/s]')
+y1_min, y1_max = axes[1].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[1].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[1].set_title('Angular Velocity vs Time')
+axes[1].grid(True)
+
+
+ax2 = axes[2].twinx()
+axes[2].plot(S.t, S.theta_1_ddot)
+ax2.plot(S.t, S.theta_2_ddot, color='#ff7f0e')
+axes[2].set_xlabel('Time [s]')
+axes[2].set_ylabel('Angular Acceleration 1 [rad/s^2]')
+ax2.set_ylabel('Angular Acceleration 2 [rad/s^2]')
+y1_min, y1_max = axes[2].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[2].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[2].set_title('Angular Acceleration vs Time')
+axes[2].grid(True)
+
+# Plot Load
+for load in [tau_1, tau_2]:
+    load_t = np.zeros_like(S.t)
+    if 'sin' in load:
+        for key in load:
+            for A, om in zip(load[key]['amplitude'], load[key]['frequency']*2*np.pi):
+                if key == 'sin':
+                    load_t = load_t + A * np.sin(om*S.t)
+                elif key == 'cos':
+                    load_t = load_t + A * np.cos(om*S.t)
+    else:
+        load_t = load[0]*S.t**2 + load[1]*S.t + load[2]
+    axes[3].plot(S.t, load_t)
+axes[3].set_xlabel('Time [s]')
+axes[3].set_ylabel('Load [N.m]')
+axes[3].set_title('Load vs Time')
+axes[3].grid(True)
+
+fig.legend()
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+```
+
+<figure id="fig:2_degree_of_freedom_forcedVibration_time_response_PolyHarmonic">
+    <img src="05_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Harmonic Excitation">
+    <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Harmonic Excitation</figcaption>
+</figure>
+
+<u>**Arbitrary Excitations - Dirac Delta Function**</u>
+
+In this example, we consider an arbitrary excitation in the form of a [**Dirac delta function**](https://en.wikipedia.org/wiki/Dirac_delta_function) applied on the first degree of freedom while the second degree of freedom is subjected to no external excitation:
+
+```Python
+# Simulate time response with a arbitrary excitation: hammer
+N = 1000
+T = 10
+dt = 0.01
+time_array = np.linspace(0, T, N) # Time array [s]
+dN = int(N//T*dt)
+load_array = np.zeros_like(time_array)
+load_array[N//T+1:N//T+dN+1] = 1e2
+tau_1 = {'time': time_array, 'load': load_array}
+tau_2 = {'time': time_array, 'load': np.zeros_like(time_array)}
+# Calculate solution
+S.simulate_time_response(initial_angle=np.array([0, 0]), initial_velocity=[0, 0], load_type=np.array(['measurement', 'measurement']), tau_ext=[tau_1, tau_2])
+
+# Plotting the time response
+fig, axes = plt.subplots(4, 1, figsize=(15, 10))
+fig.suptitle('Time Response of 2DOF Torsional System', fontsize=16)
+# Angular Displacement vs Time
+ax2 = axes[0].twinx()
+axes[0].plot(S.t, S.theta_1, label='DOF 1')
+ax2.plot(S.t, S.theta_2, label='DOF 2', color='#ff7f0e')
+axes[0].set_xlabel('Time [s]')
+axes[0].set_ylabel('Angular Displacement 1 [rad]')
+ax2.set_ylabel('Angular Displacement 2 [rad]')
+y1_min, y1_max = axes[0].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[0].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[0].set_title('Angular Displacement vs Time')
+axes[0].grid(True)
+
+ax2 = axes[1].twinx()
+axes[1].plot(S.t, S.theta_1_dot)
+ax2.plot(S.t, S.theta_2_dot, color='#ff7f0e')
+axes[1].set_xlabel('Time [s]')
+axes[1].set_ylabel('Angular Velocity 1 [rad/s]')
+ax2.set_ylabel('Angular Velocity 2 [rad/s]')
+y1_min, y1_max = axes[1].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[1].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[1].set_title('Angular Velocity vs Time')
+axes[1].grid(True)
+
+
+ax2 = axes[2].twinx()
+axes[2].plot(S.t, S.theta_1_ddot)
+ax2.plot(S.t, S.theta_2_ddot, color='#ff7f0e')
+axes[2].set_xlabel('Time [s]')
+axes[2].set_ylabel('Angular Acceleration 1 [rad/s^2]')
+ax2.set_ylabel('Angular Acceleration 2 [rad/s^2]')
+y1_min, y1_max = axes[2].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[2].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[2].set_title('Angular Acceleration vs Time')
+axes[2].grid(True)
+
+# Plot Load
+for load in [tau_1, tau_2]:
+    axes[3].plot(load['time'], load['load'])
+axes[3].set_xlabel('Time [s]')
+axes[3].set_ylabel('Load [N.m]')
+axes[3].set_title('Load vs Time')
+axes[3].grid(True)
+
+fig.legend()
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+```
+
+<figure id="fig:2_degree_of_freedom_forcedVibration_time_response_HarmonicHarmonic">
+    <img src="06_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Arbitrary Excitation">
+    <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Arbitrary Excitation</figcaption>
+</figure>
+
+
+I think it would be interesting if you take some time to play around with different forms of excitations combined with different sets of initial conditions and see how the system behaves. However, after some time dealing with only 2 degrees of freedom becomes boring. What happens when we add yet another degree a freedom? Do we need to derive the mathematics and develop the code for each case? That doesn't sound practical by any means... But then, how are existing solvers (commercial or not) capable of dealing with such cases?
+
+## Enter The Matrix
+
 
 ---
 
