@@ -1346,6 +1346,55 @@ I think it would be interesting if you take some time to play around with differ
 
 ## Enter The Matrix
 
+Having derived the equations and developed a mini-solver for SDOF ([**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1 "Part 1")) as well as for 2DOF torsional systems, it comes naturally to think of upscaling the problem to multi-degree of freedom (**MDOF**) torsional systems. Even though the adopted approach has proved its worth, it's clear how the level of complexity increased when going from SDOF to 2DOF. The prospect of developing a mini-solver for every *n*-DOF system using this same approach is not sustainable. Therefore, we need to find a better approach that would help us upscale the problem in a sustainable manner.
+
+The new proposal takes advantage of matrix operations to calculate the natural frequencies of a MDOF system as well as the mode shapes. To fully grasp the underlying dynamics behind this new approach, we will attempt to solve the 2DOF torsional system using it.
+
+### 2DOF: UFV
+
+To solve the Undamped Free Vibrations (UFV) of a 2DOF torsional system, we start by defining the following vector:
+
+$$X(t) = 
+\begin{Bmatrix}
+\theta_1(t) \\\
+\theta_2(t) \\\
+\end{Bmatrix}
+$$
+
+Therefore the equations of motion developed earlier can be written as follows:
+
+$$\begin{bmatrix} I_1 & 0 \\\ 0 & I_2 \end{bmatrix} \cdot \ddot{X}(t) + \begin{bmatrix} c & -c \\\ -c & c \end{bmatrix} \cdot X(t) = \begin{Bmatrix} 0 \\\ 0 \end{Bmatrix}$$
+
+As a consequence, we can make the equation even more compact if we define the following matrices:
+
+$$M = \begin{bmatrix} I_1 & 0 \\\ 0 & I_2 \end{bmatrix} \quad ; \quad K = \begin{bmatrix} c & -c \\\ -c & c \end{bmatrix}$$
+
+Leading to the final compact form:
+
+$$M \cdot \ddot{X}(t) + K \cdot X(t) = \begin{Bmatrix}0 \\\ 0\end{Bmatrix}$$
+
+The mathematical equivalent of the derivations performed earlier to calculate the natural frequencies and mode shapes is the following:
+
+$$det \left| K - \lambda \cdot M \right| = 0$$
+
+In matrix form, this is expressed as:
+
+$$det \left(\begin{bmatrix}c - \lambda \cdot I_1 & -c \\\ -c & c - \lambda \cdot I_2 \end{bmatrix}\right) = 0$$
+
+
+Explicitly, this yields the following derivation:
+
+$$\left(c - \lambda \cdot I_1 \right) \cdot \left(c - \lambda \cdot I_2 \right) - c^2 = 0$$
+
+$$ \lambda \cdot \left[I_1 \cdot I_2 \cdot \lambda  - c \cdot \left(I_1 + I_2 \right)\right] = 0$$
+
+As a result, we get:
+
+$$\lambda_1 = 0 \quad \text{AND} \quad \lambda_2 = \frac{c \cdot \left(I_1 + I_2 \right)}{I_1 \cdot I_2}$$
+
+Rings a bell? If you look closely and compare these results with the natural frequency values derived earlier you will notice that:
+
+$$\omega_n = \sqrt{\lambda} \rarr \omega_{n,1} = 0 = \sqrt{\lambda_1} \quad \text{AND} \quad \omega_{n,2} = \sqrt{\frac{c \cdot \left(I_1 + I_2 \right)}{I_1 \cdot I_2}} = \sqrt{\lambda_2}$$<>
 
 ---
 
