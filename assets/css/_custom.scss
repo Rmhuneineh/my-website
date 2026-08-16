@@ -1,0 +1,16 @@
+// ==============================
+// Custom style
+// 自定义样式
+// ==============================
+
+// KaTeX display (block) equations: safety net in case an equation is
+// still too wide even after the autofit script shrinks it to the
+// minimum readable scale (see assets/js/katex-autofit.js). Rather than
+// clipping content or breaking the page layout, allow that one equation
+// to scroll horizontally on its own.
+.katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.25rem; // small breathing room above the scrollbar, if it appears
+}

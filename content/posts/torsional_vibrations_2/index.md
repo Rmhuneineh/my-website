@@ -1394,7 +1394,7 @@ $$\lambda_1 = 0 \quad \text{AND} \quad \lambda_2 = \frac{c \cdot \left(I_1 + I_2
 
 Rings a bell? If you look closely and compare these results with the natural frequency values derived earlier you will notice that:
 
-$$\omega_n = \sqrt{\lambda} \rarr \omega_{n,1} = 0 = \sqrt{\lambda_1} \quad \text{AND} \quad \omega_{n,2} = \sqrt{\frac{c \cdot \left(I_1 + I_2 \right)}{I_1 \cdot I_2}} = \sqrt{\lambda_2}$$<>
+$$\omega_n = \sqrt{\lambda} \rarr \omega_{n,1} = 0 = \sqrt{\lambda_1} \quad \text{AND} \quad \omega_{n,2} = \sqrt{\frac{c \cdot \left(I_1 + I_2 \right)}{I_1 \cdot I_2}} = \sqrt{\lambda_2}$$
 
 ---
 

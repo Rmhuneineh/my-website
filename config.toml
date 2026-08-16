@@ -598,6 +598,7 @@ darkTheme = "dark"
 # Or 或者
 # someCSS = "https://cdn.example.com/some.css"
 [params.page.library.js]
+katexAutofit = "js/katex-autofit.js"
 # someJavascript = "some.js"
 # located in "assets/" 位于 "assets/"
 # Or 或者
