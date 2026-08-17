@@ -220,7 +220,7 @@ A_2^{(1)} \\\
 A_2^{(2)} \\\
 B_2^{(1)} \\\
 B_2^{(2)} \\\
-\end{Bmatrix} ;
+\end{Bmatrix} \quad ; \quad
 b= 
 \begin{Bmatrix}
 \theta_1(0) \\\
