@@ -1361,23 +1361,25 @@ $$X(t) =
 \end{Bmatrix}
 $$
 
-Therefore the equations of motion developed earlier can be written as follows:
+Consequently, the equations of motion developed earlier can be written as follows:
 
 $$\begin{bmatrix} I_1 & 0 \\\ 0 & I_2 \end{bmatrix} \cdot \ddot{X}(t) + \begin{bmatrix} c & -c \\\ -c & c \end{bmatrix} \cdot X(t) = \begin{Bmatrix} 0 \\\ 0 \end{Bmatrix}$$
 
-As a consequence, we can make the equation even more compact if we define the following matrices:
+Moreover, we can make the equation even more compact if we define the following matrices:
 
 $$M = \begin{bmatrix} I_1 & 0 \\\ 0 & I_2 \end{bmatrix} \quad ; \quad K = \begin{bmatrix} c & -c \\\ -c & c \end{bmatrix}$$
 
-Leading to the final compact form:
+Leading to the following final form:
 
 $$M \cdot \ddot{X}(t) + K \cdot X(t) = \begin{Bmatrix}0 \\\ 0\end{Bmatrix}$$
 
-The mathematical equivalent of the derivations performed earlier to calculate the natural frequencies and mode shapes is the following:
+The matrix operation required, that is equivalent to the derivations performed earlier to calculate the natural frequencies and mode shapes, is the calculation of the eigen values and eigen vectors according to the following:
 
 $$det \left| K - \lambda \cdot M \right| = 0$$
 
-In matrix form, this is expressed as:
+Where $\mathbf{\lambda}$ is a vector containing the eigen values.
+
+In matrix form, and applied to our specific 2DOF case, this is expressed as:
 
 $$det \left(\begin{bmatrix}c - \lambda \cdot I_1 & -c \\\ -c & c - \lambda \cdot I_2 \end{bmatrix}\right) = 0$$
 
@@ -1388,7 +1390,7 @@ $$\left(c - \lambda \cdot I_1 \right) \cdot \left(c - \lambda \cdot I_2 \right) 
 
 $$ \lambda \cdot \left[I_1 \cdot I_2 \cdot \lambda  - c \cdot \left(I_1 + I_2 \right)\right] = 0$$
 
-As a result, we get:
+Eventually, we obtain the eigen values:
 
 $$\lambda_1 = 0 \quad \text{AND} \quad \lambda_2 = \frac{c \cdot \left(I_1 + I_2 \right)}{I_1 \cdot I_2}$$
 
