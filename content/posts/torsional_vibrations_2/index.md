@@ -1398,6 +1398,72 @@ Rings a bell? If you look closely and compare these results with the natural fre
 
 $$\omega_n = \sqrt{\lambda} \rarr \omega_{n,1} = 0 = \sqrt{\lambda_1} \quad \text{AND} \quad \omega_{n,2} = \sqrt{\frac{c \cdot \left(I_1 + I_2 \right)}{I_1 \cdot I_2}} = \sqrt{\lambda_2}$$
 
+Naturally, a question arise: if the eigen values are related to the natural frequencies, what can relate to the mode shapes? If your guess is the **eigen vectors**, congratulations! You're on the right track! Recall that earlier, we had to substitute the each natural frequency into the linear equations to find a relationship between the two physical coordinates from which we eventually ended up with the mode shapes. In matrix operations, this is equivalent to finding the eigen vectors after having calculated the eigen values.
+
+If you're still questioning the advantage behind switching to matrix form, it's exactly this: we don't have to derive the equations for every degree of freedom anymore, matrix operations help us calculate the natural frequencies and the mode shapes directly. Moreover, we don't even have to implement an algorithm for those matrix operations; they're already availabe thanks to the [**```eigh()```**](https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.eigh.html "scipy.linalg.eigh") function provided by the [**```scipy.linalg```**](https://docs.scipy.org/doc/scipy/reference/linalg.html "scipy.linalg") library.
+
+Before proceeding with the implementation of the code, we have to revise some mathematical constraints that need to be checked to ensure the validity of the matrix operations. These checks serve as an immunity shield against wrong input from the user. The conditions that need to be checked are the following:
+
+1) **Constraints on Both Matrices**:
+   - Both matrices must be 2D arrays.
+   - Both arrays must be square.
+   - Both matrices must have the exact same dimensions.
+   - Both matrices must be symmetrical: $\mathbf{M = M^T \quad \text{and} \quad K = K^T}$.
+2) **Constraint on Inertia Matrix**:
+   - $\mathbf{M}$ must be strictly positive definite. This ensures strictly positive kinetic energy and prevents zero or negative inertia components on physical coordinates.
+3) **Constraint on Stiffness Matrix**:
+   - $\mathbf{K}$ must be either positive deinite or positive semi-definite. The latter allows rigid body modes.
+
+In other words, these checks are similar to the ```if-statement``` in our constructor that ensures the inertias and the stiffness are all strictly positive. On top of that, here we can also check whether rigid body motion is expected.
+
+Finally, we can start defining our ```MDOFTorsionalSystem``` python class:
+
+```Python
+from scipy.linalg import cholesky, eigvalsh, eigh
+
+class MDOFTorsionalSystem:
+    
+    # Constructor to initialize the system parameters
+    def __init__(self, I_mat=np.array([0]), c_mat=np.array([0])):
+        self.M = I_mat
+        self.K = c_mat
+
+        # Perform checks on matrices
+        self._validate_matrices()
+
+        # Calculate natural frequencies and mode shapes
+        self.omega_n, self.phi = self.calculate_UFV_properties()
+
+    # Method to check the validity of the matrices provided
+    def _validate_matrices(self):
+        # First check that both matrices are 2D arrays
+        if self.M.ndim != 2 or self.K.ndim != 2:
+            raise ValueError("Matrices must be two-dimensional.")
+        # Second check that both matrices are square matrices
+        if self.M.shape[0] != self.M.shape[1] or self.K.shape[0] != self.K.shape[1]:
+            raise ValueError("Matrices must be square.")
+        # Third check that both matrices have the same exact dimensions
+        if self.M.shape != self.K.shape:
+            raise ValueError("Inertia and Stiffness matrices must have the same dimensions.")
+        # Fourth check that both matrices are symmetrical (we use np.allclose() for float precision)
+        if not np.allclose(self.M, self.M.T):
+            raise ValueError("Inertia matrix (M) must be symmetric.")
+        if not np.allclose(self.K, self.K.T):
+            raise ValueError("Stiffness matrix (K) must be symmetric.")
+        # Fifth check that M is positive definite using Cholesky Decomposition
+        try:
+            cholesky(self.M)
+        except:
+            raise ValueError("Inertia matrix (M) must be strictly positive definite.")
+        # Sixth check that K is positive semi-definite using eigenvalues
+        if np.any(eigvalsh(self.K) < -1e-12):
+            raise ValueError("Stiffness matrix (K) must be positive semi-definite (no negative eigenvalues).")
+    
+    # Method to calculate the natural frequency of the system: Out-of-phase vibration mode
+    def calculate_UFV_properties(self):
+        return eigh(self.K, self.M)
+```
+
 ---
 
 
