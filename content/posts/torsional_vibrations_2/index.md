@@ -1398,9 +1398,9 @@ Rings a bell? If you look closely and compare these results with the natural fre
 
 $$\omega_n = \sqrt{\lambda} \rarr \omega_{n,1} = 0 = \sqrt{\lambda_1} \quad \text{AND} \quad \omega_{n,2} = \sqrt{\frac{c \cdot \left(I_1 + I_2 \right)}{I_1 \cdot I_2}} = \sqrt{\lambda_2}$$
 
-Naturally, a question arise: if the eigen values are related to the natural frequencies, what can relate to the mode shapes? If your guess is the **eigen vectors**, congratulations! You're on the right track! Recall that earlier, we had to substitute the each natural frequency into the linear equations to find a relationship between the two physical coordinates from which we eventually ended up with the mode shapes. In matrix operations, this is equivalent to finding the eigen vectors after having calculated the eigen values.
+Naturally, a question arises: if the eigen values are related to the natural frequencies, what matrix property relates to the mode shapes? If your guess is the **eigen vectors**, congratulations, you're on the right track! Recall that earlier, we had to substitute each natural frequency into the linear equations to find a relationship between the two physical coordinates from which we eventually ended up with the mode shapes. In matrix operations, this is equivalent to finding the eigen vectors after having calculated the eigen values.
 
-If you're still questioning the advantage behind switching to matrix form, it's exactly this: we don't have to derive the equations for every degree of freedom anymore, matrix operations help us calculate the natural frequencies and the mode shapes directly. Moreover, we don't even have to implement an algorithm for those matrix operations; they're already availabe thanks to the [**```eigh()```**](https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.eigh.html "scipy.linalg.eigh") function provided by the [**```scipy.linalg```**](https://docs.scipy.org/doc/scipy/reference/linalg.html "scipy.linalg") library.
+If you're still questioning the advantage behind switching to matrix form, it's exactly this: we don't have to derive the equations for calculating the natural frequencies and the mode shapes every time we add a degree of freedom, matrix operations help us calculate the natural frequencies and the mode shapes directly. Moreover, we don't even have to implement an algorithm for those matrix operations; they're already availabe thanks the [**```scipy.linalg```**](https://docs.scipy.org/doc/scipy/reference/linalg.html "https://docs.scipy.org/doc/scipy/reference/linalg.html") library.
 
 Before proceeding with the implementation of the code, we have to revise some mathematical constraints that need to be checked to ensure the validity of the matrix operations. These checks serve as an immunity shield against wrong input from the user. The conditions that need to be checked are the following:
 
@@ -1412,7 +1412,7 @@ Before proceeding with the implementation of the code, we have to revise some ma
 2) **Constraint on Inertia Matrix**:
    - $\mathbf{M}$ must be strictly positive definite. This ensures strictly positive kinetic energy and prevents zero or negative inertia components on physical coordinates.
 3) **Constraint on Stiffness Matrix**:
-   - $\mathbf{K}$ must be either positive deinite or positive semi-definite. The latter allows rigid body modes.
+   - $\mathbf{K}$ must be either positive definite or positive semi-definite. The latter allows rigid body modes.
 
 In other words, these checks are similar to the ```if-statement``` in our constructor that ensures the inertias and the stiffness are all strictly positive. On top of that, here we can also check whether rigid body motion is expected.
 
@@ -1461,7 +1461,9 @@ class MDOFTorsionalSystem:
     
     # Method to calculate the natural frequency of the system: Out-of-phase vibration mode
     def calculate_UFV_properties(self):
-        return eigh(self.K, self.M)
+        omega2, phi = eigh(self.K, self.M)
+        omega_n = np.sqrt(omega2)
+        return omega_n, phi
 ```
 
 ---
