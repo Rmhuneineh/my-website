@@ -49,7 +49,7 @@ The free body diagrams of the two rotating bodies are shown in [**Figure 2**](#f
 
 <figure id="fig:2_degree_of_freedom_rigid_motion_fbd">
     <img src="01_torVib.png" alt="2 Degree of Freedom System: Free Body Diagram">
-    <figcaption>Figure 1 - 2 Degree of Freedom System: Free Body Diagram</figcaption>
+    <figcaption>Figure 2 - 2 Degree of Freedom System: Free Body Diagram</figcaption>
 </figure>
 
 The resulting set of equations of motion is:
@@ -603,7 +603,7 @@ from scipy.integrate import cumulative_trapezoid
 
 # ... (previous code remains unchanged)
 
-    # Method to simulate the time response of the system: Free Vibrations
+    # Method to simulate the time response of the system
     def simulate_time_response(self, initial_angle=np.array([0.0, 0.0]), initial_velocity=np.array([0.0, 0.0]), time_span=10, load_type=np.array(["poly", "poly"]),
                                tau_ext=np.array([[0], [0]]), dtype=np.float16):
         if self.omega_n is None:
@@ -809,7 +809,7 @@ class SDOFTorsionalSystem:
 Finally, the code for the ```simulate_time_response()``` function should like like this:
 
 ```Python
-# Method to simulate the time response of the system: Free Vibrations
+# Method to simulate the time response of the system
     def simulate_time_response(self, initial_angle=np.array([0.0, 0.0]), initial_velocity=np.array([0.0, 0.0]), time_span=10,
                                load_type=["poly", "poly"], tau_ext=np.array([[0], [0]]), dtype=np.float16):
         if self.omega_n is None:
@@ -1072,7 +1072,7 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 <figure id="fig:2_degree_of_freedom_forcedVibration_time_response_PolyPoly">
     <img src="03_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Poly Excitation">
-    <figcaption>Figure 3 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Poly Excitation</figcaption>
+    <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Poly Excitation</figcaption>
 </figure>
 
 <u>**Harmonic Excitations**</u>
@@ -1163,7 +1163,7 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 <figure id="fig:2_degree_of_freedom_forcedVibration_time_response_HarmonicHarmonic">
     <img src="04_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Harmonic-Harmonic Excitation">
-    <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Harmonic-Harmonic Excitation</figcaption>
+    <figcaption>Figure 5 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Harmonic-Harmonic Excitation</figcaption>
 </figure>
 
 <u>**Mixed Excitations - Polynomial + Harmonic**</u>
@@ -1253,7 +1253,7 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 <figure id="fig:2_degree_of_freedom_forcedVibration_time_response_PolyHarmonic">
     <img src="05_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Harmonic Excitation">
-    <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Harmonic Excitation</figcaption>
+    <figcaption>Figure 6 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Poly-Harmonic Excitation</figcaption>
 </figure>
 
 <u>**Arbitrary Excitations - Dirac Delta Function**</u>
@@ -1338,7 +1338,7 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 <figure id="fig:2_degree_of_freedom_forcedVibration_time_response_HarmonicHarmonic">
     <img src="06_torVib.png" alt="2 Degree of Freedom System: Forced Vibrations Time Response Under Arbitrary Excitation">
-    <figcaption>Figure 4 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Arbitrary Excitation</figcaption>
+    <figcaption>Figure 7 - 2 Degree of Freedom System: Forced Vibrations Time Response Under Arbitrary Excitation</figcaption>
 </figure>
 
 
@@ -1350,7 +1350,7 @@ Having derived the equations and developed a mini-solver for SDOF ([**Part 1**](
 
 The new proposal takes advantage of matrix operations to calculate the natural frequencies of a MDOF system as well as the mode shapes. To fully grasp the underlying dynamics behind this new approach, we will attempt to solve the 2DOF torsional system using it.
 
-### 2DOF: UFV
+### On Natural Frequencies & Mode Shapes
 
 To solve the Undamped Free Vibrations (UFV) of a 2DOF torsional system, we start by defining the following vector:
 
@@ -1373,7 +1373,7 @@ Leading to the following final form:
 
 $$M \cdot \ddot{X}(t) + K \cdot X(t) = \begin{Bmatrix}0 \\\ 0\end{Bmatrix}$$
 
-The matrix operation required, that is equivalent to the derivations performed earlier to calculate the natural frequencies and mode shapes, is the calculation of the eigen values and eigen vectors according to the following:
+The matrix operation required, that is equivalent to the derivations performed earlier to calculate the natural frequencies, is the calculation of the eigen values according to the following:
 
 $$det \left| K - \lambda \cdot M \right| = 0$$
 
@@ -1400,7 +1400,7 @@ $$\omega_n = \sqrt{\lambda} \rarr \omega_{n,1} = 0 = \sqrt{\lambda_1} \quad \tex
 
 Naturally, a question arises: if the eigen values are related to the natural frequencies, what matrix property relates to the mode shapes? If your guess is the **eigen vectors**, congratulations, you're on the right track! Recall that earlier, we had to substitute each natural frequency into the linear equations to find a relationship between the two physical coordinates from which we eventually ended up with the mode shapes. In matrix operations, this is equivalent to finding the eigen vectors after having calculated the eigen values.
 
-If you're still questioning the advantage behind switching to matrix form, it's exactly this: we don't have to derive the equations for calculating the natural frequencies and the mode shapes every time we add a degree of freedom, matrix operations help us calculate the natural frequencies and the mode shapes directly. Moreover, we don't even have to implement an algorithm for those matrix operations; they're already availabe thanks the [**```scipy.linalg```**](https://docs.scipy.org/doc/scipy/reference/linalg.html "https://docs.scipy.org/doc/scipy/reference/linalg.html") library.
+If you're still questioning the advantage behind switching to matrix form, it's exactly this: we don't have to derive the equations for calculating the natural frequencies and the mode shapes every time we add a degree of freedom, matrix operations help us calculate the natural frequencies and the mode shapes directly. Moreover, we don't even have to implement an algorithm for those matrix operations; they're already availabe thanks to the [**```scipy.linalg```**](https://docs.scipy.org/doc/scipy/reference/linalg.html "https://docs.scipy.org/doc/scipy/reference/linalg.html") library.
 
 Before proceeding with the implementation of the code, we have to revise some mathematical constraints that need to be checked to ensure the validity of the matrix operations. These checks serve as an immunity shield against wrong input from the user. The conditions that need to be checked are the following:
 
@@ -1415,6 +1415,7 @@ Before proceeding with the implementation of the code, we have to revise some ma
    - $\mathbf{K}$ must be either positive definite or positive semi-definite. The latter allows rigid body modes.
 
 In other words, these checks are similar to the ```if-statement``` in our constructor that ensures the inertias and the stiffness are all strictly positive. On top of that, here we can also check whether rigid body motion is expected.
+
 
 Finally, we can start defining our ```MDOFTorsionalSystem``` python class:
 
@@ -1432,7 +1433,7 @@ class MDOFTorsionalSystem:
         self._validate_matrices()
 
         # Calculate natural frequencies and mode shapes
-        self.omega_n, self.phi = self.calculate_UFV_properties()
+        self.omega_n, self.psi = self.calculate_UFV_properties()
 
     # Method to check the validity of the matrices provided
     def _validate_matrices(self):
@@ -1461,10 +1462,176 @@ class MDOFTorsionalSystem:
     
     # Method to calculate the natural frequency of the system: Out-of-phase vibration mode
     def calculate_UFV_properties(self):
-        omega2, phi = eigh(self.K, self.M)
+        omega2, psi = eigh(self.K, self.M)
         omega_n = np.sqrt(omega2)
-        return omega_n, phi
+        return omega_n, psi
 ```
+
+We can try the code block with the example from before:
+
+```Python
+# Define parameters
+I_1 = 0.1 # [kg.m^2]
+I_2 = 5 # [kg.m^2]
+c_1 = 25 # [N.m/rad]
+
+# Define inertia and stiffness matrices
+I_mat = np.diag([I_1, I_2])
+c_mat = np.array([[c, -c], [-c, c]])
+
+# Define an instance of the model
+S = MDOFTorsionalSystem(I_mat=I_mat, c_mat=c_mat)
+
+# Print natural frequencies
+print(f"Natural Frequencies: {S.omega_n / 2 / np.pi} [Hz]")
+# Output: Natural Frequencies: [0.         2.54150063] [Hz]
+
+# Print mode shapes
+print("Mode Shapes: Mode 1 | Mode 2")
+print(f"DOF 1 :     {S.psi[0][0]:.4f} | {S.psi[0][1]:.4f}")
+print(f"DOF 2 :     {S.psi[1][0]:.4f} | {S.psi[1][1]:.4f}")
+# Output:
+# Mode Shapes: Mode 1 | Mode 2
+# DOF 1 :     -0.4428 | -3.1311
+# DOF 2 :     -0.4428 | 0.0626
+
+```
+
+You might notice that the values obtained for the mode shapes differ from the ones we had previously calculated; in fact, even the name of the variable is changed to ```psi``` instead of ```phi```. This is becuase the ```scipy.linalg.eigh()``` function returns the mass-normalized eigen vectors. Given that the eigen vector matrix is subject to an arbitrary scaling factor (e.g. previously we took the first degree of freedom as reference), there's one which has most relevance to our application: **Mass Normalization**.
+
+Just like we defined the modal force earlier, we can define the **modal mass** and **modal stiffness**, respectively, as follows:
+
+$$m_r = \phi^T \cdot M \cdot \phi$$
+
+$$k_r = \phi^T \cdot K \cdot \phi$$
+
+The mass-normalized mode shape matrix is then defined as:
+
+$$\psi = \phi \cdot m_r^{-1/2}$$
+
+It has the following properties:
+
+$$\psi^T \cdot M \cdot \psi = I$$
+
+$$\psi^T \cdot K \cdot \psi = \omega_n^2$$
+
+The corresponding relationship between modal coordinates and physical coordinates is then updated to:
+
+$$q(t) = \psi^T \cdot M \cdot \theta(t)$$
+
+Here comes the interesting part: when switching to modal coordinates, we derived the following equation for the second mode:
+
+$$I_{eq}^{(2)} \cdot \ddot{q}\_{2,P} + c_{eq}^{(2)} \cdot q\_{2,P} = \phi_1^{(2)} \cdot \tau_1(t) + \phi_2^{(2)} \cdot \tau_2(t)$$
+
+By adopting the mass-normalized mode shapes, our equation reduces to the following form:
+
+$$\ddot{q}\_{2,P} + \omega_2^2 \cdot q\_{2,P} = f_2(t)$$
+
+$$ \text{where: } f_r(t) = \psi_1^{(2)} \cdot \tau_1(t) + \psi_2^{(2)} \cdot \tau_2(t)$$
+
+For the general solution, we know that $\mathbf{f_r(t)=0}$ for any mode $\mathbf{r}$. Moreover, for the rigid body motion mode, the natural frequency is null and the response is simply a first-order linear equation in time. Thus, I will take the chance to implement the general solution in modal coordinates rather than referring to our 8x8 linear system that we developed earlier since that solution doesn't scale up in a sustainable manner.
+
+```Python
+# ... (previous code remains unchanged)
+
+# Method to simulate the time response of the system: Free Vibrations
+    def simulate_time_response(self, initial_angle=None, initial_velocity=None, time_span=10):
+        # Get the number of degrees of freedom
+        n = self.M.shape[0]
+
+        # If no inital angle has been given, assume it's all null
+        if initial_angle is None:
+            initial_angle = np.zeros(n)
+
+        # If no inital velocity has been given, assume it's all null
+        if initial_velocity is None:
+            initial_velocity = np.zeros(n)
+
+        # Project initial conditions onto modal coordinates
+        q_0 = self.psi.T @ self.M @ initial_angle
+        q_0_dot = self.psi.T @ self.M @ initial_velocity
+
+        # Time array
+        self.t = np.linspace(0, time_span, 1000)
+
+        # Define modal coordinates vs time
+        qG_t = np.zeros((n, len(self.t)))
+        qG_t_dot = np.zeros((n, len(self.t)))
+        qG_t_ddot = np.zeros((n, len(self.t)))
+
+        # Calculate modal coordinates vs time
+        for r in range(n):
+            if np.isclose(self.omega_n[r], 0):
+                # Rigid body motion: linear in time
+                qG_t[r] = q_0[r] + q_0_dot[r] * self.t
+                qG_t_dot[r] = q_0_dot[r]
+                # qG_t_ddot remains zeros!
+            else:
+                # Elastic mode: harmonic
+                A_r = q_0[r]
+                B_r = q_0_dot[r] / self.omega_n[r]
+                qG_t[r] = A_r * np.cos(self.omega_n[r] * self.t) + B_r * np.sin(self.omega_n[r] * self.t)
+                qG_t_dot[r] = (-A_r * np.sin(self.omega_n[r] * self.t) + B_r * np.cos(self.omega_n[r] * self.t)) * self.omega_n[r]
+                qG_t_ddot[r] = -(A_r * np.cos(self.omega_n[r] * self.t) + B_r * np.sin(self.omega_n[r] * self.t)) * self.omega_n[r]**2
+
+        # Recover physical coordinates
+        self.theta_G = self.psi @ qG_t
+        self.theta_G_dot = self.psi @ qG_t_dot
+        self.theta_G_ddot = self.psi @ qG_t_ddot
+```
+
+Hence, we can test this code by executing the example we tried in the beginning:
+
+```Python
+# Define Initial Conditions
+theta_0 = [1, -0.1] # Initial angular position
+theta_dot_0 = [-2, 0.1] # Initial angular velocity
+# Calculate solution
+S.simulate_time_response(initial_angle=theta_0, initial_velocity=theta_dot_0)
+
+# Plotting the time response
+fig, axes = plt.subplots(3, 1, figsize=(15, 10))
+fig.suptitle('Time Response of 2DOF Torsional System', fontsize=16)
+# Angular Displacement vs Time
+ax2 = axes[0].twinx()
+axes[0].plot(S.t, S.theta_G[0], label='DOF 1')
+ax2.plot(S.t, S.theta_G[1], label='DOF 2', color='#ff7f0e')
+axes[0].set_xlabel('Time [s]')
+axes[0].set_ylabel('Angular Displacement 1 [rad]')
+ax2.set_ylabel('Angular Displacement 2 [rad]')
+axes[0].set_title('Angular Displacement vs Time')
+axes[0].grid(True)
+
+ax2 = axes[1].twinx()
+axes[1].plot(S.t, S.theta_G_dot[0])
+ax2.plot(S.t, S.theta_G_dot[1], color='#ff7f0e')
+axes[1].set_xlabel('Time [s]')
+axes[1].set_ylabel('Angular Velocity 1 [rad/s]')
+ax2.set_ylabel('Angular Velocity 2 [rad/s]')
+axes[1].set_title('Angular Velocity vs Time')
+axes[1].grid(True)
+
+ax2 = axes[2].twinx()
+axes[2].plot(S.t, S.theta_G_ddot[0])
+ax2.plot(S.t, S.theta_G_ddot[1], color='#ff7f0e')
+axes[2].set_xlabel('Time [s]')
+axes[2].set_ylabel('Angular Acceleration 1 [rad/s^2]')
+ax2.set_ylabel('Angular Acceleration 2 [rad/s^2]')
+axes[2].set_title('Angular Acceleration vs Time')
+axes[2].grid(True)
+
+fig.legend()
+fig.text(0.06, 0.9, r"$\mathbf{\theta_1(0) = }$" + f"{theta_0[0]} [rad]" + "\n" + r"$\mathbf{\dot{\theta}_1(0) = }$" + f"{theta_dot_0[0]} [rad/s]" + "\n" + 
+         r"$\mathbf{\theta_2(0) = }$" + f"{theta_0[1]} [rad]" + "\n" + r"$\mathbf{\dot{\theta}_2(0) = }$" + f"{theta_dot_0[1]} [rad/s]")
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+```
+
+This should produce what is shown in [**Figure 8**](#fig:2_degree_of_freedom_freeVibration_time_response_matrix), which should exactly match what is shown in [**Figure 2**](#fig:2_degree_of_freedom_freeVibration_time_response).
+
+<figure id="fig:2_degree_of_freedom_freeVibration_time_response_matrix">
+    <img src="07_torVib.png" alt="2 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form">
+    <figcaption>Figure 8 - 2 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form</figcaption>
+</figure>
 
 ---
 
