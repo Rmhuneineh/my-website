@@ -1463,6 +1463,8 @@ class MDOFTorsionalSystem:
     # Method to calculate the natural frequency of the system: Out-of-phase vibration mode
     def calculate_UFV_properties(self):
         omega2, psi = eigh(self.K, self.M)
+        # Negative values resulting from numerical errors. Prevent from square root.
+        omega2[np.where(omega2 < 0)] = 0
         omega_n = np.sqrt(omega2)
         return omega_n, psi
 ```
@@ -1473,7 +1475,7 @@ We can try the code block with the example from before:
 # Define parameters
 I_1 = 0.1 # [kg.m^2]
 I_2 = 5 # [kg.m^2]
-c_1 = 25 # [N.m/rad]
+c = 25 # [N.m/rad]
 
 # Define inertia and stiffness matrices
 I_mat = np.diag([I_1, I_2])
@@ -1631,6 +1633,75 @@ This should produce what is shown in [**Figure 8**](#fig:2_degree_of_freedom_fre
 <figure id="fig:2_degree_of_freedom_freeVibration_time_response_matrix">
     <img src="07_torVib.png" alt="2 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form">
     <figcaption>Figure 8 - 2 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form</figcaption>
+</figure>
+
+The interesting thing now is that we can test our model with more than 2 degrees of freedom and see the outcome. If we consider an additional shaft with stiffness $\mathbf{c_2}$ connected to the second rotating component on one end and to a third rotating component, whose inertia will be denoted by $\mathbf{I_3}$, on the other end, then the system would be defined as follows:
+
+```Python
+# Define parameters
+I_1 = 0.1 # [kg.m^2]
+I_2 = 5 # [kg.m^2]
+I_3 = 1 # [kg.m^2]
+c_1 = 25 # [N.m/rad]
+c_2 = 35 # [N.m/rad]
+
+# Define inertia and stiffness matrices
+I_mat = np.diag([I_1, I_2, I_3])
+c_mat = np.array([[c_1, -c_1, 0], [-c_1, c_1 + c_2, -c_2], [0, -c_2, c_2]])
+
+
+# Define an instance of the model
+S = MDOFTorsionalSystem(I_mat=I_mat, c_mat=c_mat)
+
+# Define Initial Conditions
+theta_0 = [1, -0.1, 0] # Initial angular position
+theta_dot_0 = [-2, 0.1, 0] # Initial angular velocity
+# Calculate solution
+S.simulate_time_response(initial_angle=theta_0, initial_velocity=theta_dot_0)
+
+# Plotting the time response
+fig, axes = plt.subplots(3, 1, figsize=(15, 10))
+fig.suptitle('Time Response of 2DOF Torsional System', fontsize=16)
+# Angular Displacement vs Time
+ax2 = axes[0].twinx()
+axes[0].plot(S.t, S.theta_G[0], label='DOF 1')
+ax2.plot(S.t, S.theta_G[1], label='DOF 2', color='#ff7f0e')
+ax2.plot(S.t, S.theta_G[2], label='DOF 3', color="#ff0ea3")
+axes[0].set_xlabel('Time [s]')
+axes[0].set_ylabel('Angular Displacement 1 [rad]')
+ax2.set_ylabel('Angular Displacement 2 & 3 [rad]')
+axes[0].set_title('Angular Displacement vs Time')
+axes[0].grid(True)
+
+ax2 = axes[1].twinx()
+axes[1].plot(S.t, S.theta_G_dot[0])
+ax2.plot(S.t, S.theta_G_dot[1], color='#ff7f0e')
+ax2.plot(S.t, S.theta_G_dot[2], color="#ff0ea3")
+axes[1].set_xlabel('Time [s]')
+axes[1].set_ylabel('Angular Velocity 1 [rad/s]')
+ax2.set_ylabel('Angular Velocity 2 & 3 [rad/s]')
+axes[1].set_title('Angular Velocity vs Time')
+axes[1].grid(True)
+
+ax2 = axes[2].twinx()
+axes[2].plot(S.t, S.theta_G_ddot[0])
+ax2.plot(S.t, S.theta_G_ddot[1], color='#ff7f0e')
+ax2.plot(S.t, S.theta_G_ddot[2], color="#ff0ea3")
+axes[2].set_xlabel('Time [s]')
+axes[2].set_ylabel('Angular Acceleration 1 [rad/s^2]')
+ax2.set_ylabel('Angular Acceleration 2 & 3 [rad/s^2]')
+axes[2].set_title('Angular Acceleration vs Time')
+axes[2].grid(True)
+
+fig.legend()
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+```
+
+Keeping the initial conditions for the first two degrees of freedom the same and setting the ones for the third degree of freedom to null, the code block plot the graph shown in [**Figure 9**](#fig:3_degree_of_freedom_freeVibration_time_response_matrix).
+
+<figure id="fig:3_degree_of_freedom_freeVibration_time_response_matrix">
+    <img src="08_torVib.png" alt="3 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form">
+    <figcaption>Figure 9 - 3 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form</figcaption>
 </figure>
 
 ---
