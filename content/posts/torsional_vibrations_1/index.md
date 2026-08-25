@@ -126,7 +126,7 @@ Thus, we have:
 $$B = \frac{\dot{\theta}(0)}{\omega_n}$$
 
  The corresponding mode shape for this SDOF system is simply the angular displacement $\theta(t)$, which can be expressed as:
-$$\theta(t) = \theta(0) \cos(\sqrt{\frac{c}{I}} t) + \frac{\dot{\theta}(0)}{\sqrt{\frac{c}{I}}} \sin(\sqrt{\frac{c}{I}} t)$$
+$$\theta(t) = \theta(0) \cos \left(\sqrt{\frac{c}{I}} t \right) + \frac{\dot{\theta}(0)}{\sqrt{\frac{c}{I}}} \sin \left(\sqrt{\frac{c}{I}} t \right)$$
 
 ### Exponentials: I Know You Love Them
 
