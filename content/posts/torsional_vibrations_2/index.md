@@ -39,7 +39,7 @@ Finally, we will analyze the case where an infinitely-rigid-inertialess adaption
 Consider the system shown in [**Figure 1**](#fig:2_degree_of_freedom_rigid_motion). It is composed of 2 rotating inertias, $\bold{I_1}$ and $\bold{I_2}$, connected to one another via the shaft with torsional stiffness $\bold{c}$. Assume that the system is supported by bearings allowing for rigid rotation along the shaft's axis and that the mass of the involved bodies isn't significant enough to cause the shaft to bend.
 
 <figure id="fig:2_degree_of_freedom_rigid_motion">
-    <img src="00_torVib.png" alt="2 Degree of Freedom System: No Rigid Motion">
+    <img src="00_torVib.png" alt="2 Degree of Freedom System: Rigid Motion">
     <figcaption>Figure 1 - 2 Degree of Freedom System</figcaption>
 </figure>
 
@@ -1400,7 +1400,7 @@ $$\omega_n = \sqrt{\lambda} \rarr \omega_{n,1} = 0 = \sqrt{\lambda_1} \quad \tex
 
 Naturally, a question arises: if the eigen values are related to the natural frequencies, what matrix property relates to the mode shapes? If your guess is the **eigen vectors**, congratulations, you're on the right track! Recall that earlier, we had to substitute each natural frequency into the linear equations to find a relationship between the two physical coordinates from which we eventually ended up with the mode shapes. In matrix operations, this is equivalent to finding the eigen vectors after having calculated the eigen values.
 
-If you're still questioning the advantage behind switching to matrix form, it's exactly this: we don't have to derive the equations for calculating the natural frequencies and the mode shapes every time we add a degree of freedom, matrix operations help us calculate the natural frequencies and the mode shapes directly. Moreover, we don't even have to implement an algorithm for those matrix operations; they're already availabe thanks to the [**```scipy.linalg```**](https://docs.scipy.org/doc/scipy/reference/linalg.html "https://docs.scipy.org/doc/scipy/reference/linalg.html") library.
+If you're still questioning the advantage behind switching to matrix form, it's exactly this: we don't have to derive the equations for calculating the natural frequencies and the mode shapes every time we add a degree of freedom; matrix operations help us calculate the natural frequencies and the mode shapes directly. Moreover, we don't even have to implement an algorithm for those matrix operations; they're already availabe thanks to the [**```scipy.linalg```**](https://docs.scipy.org/doc/scipy/reference/linalg.html "https://docs.scipy.org/doc/scipy/reference/linalg.html") library.
 
 Before proceeding with the implementation of the code, we have to revise some mathematical constraints that need to be checked to ensure the validity of the matrix operations. These checks serve as an immunity shield against wrong input from the user. The conditions that need to be checked are the following:
 
@@ -1556,7 +1556,7 @@ For the general solution, we know that $\mathbf{f_r(t)=0}$ for any mode $\mathbf
         # Time array
         self.t = np.linspace(0, time_span, 1000)
 
-        # Define modal coordinates vs time
+        # Initialize modal coordinates vs time all to null
         qG_t = np.zeros((n, len(self.t)))
         qG_t_dot = np.zeros((n, len(self.t)))
         qG_t_ddot = np.zeros((n, len(self.t)))
@@ -1635,7 +1635,12 @@ This should produce what is shown in [**Figure 8**](#fig:2_degree_of_freedom_fre
     <figcaption>Figure 8 - 2 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form</figcaption>
 </figure>
 
-The interesting thing now is that we can test our model with more than 2 degrees of freedom and see the outcome. If we consider an additional shaft with stiffness $\mathbf{c_2}$ connected to the second rotating component on one end and to a third rotating component, whose inertia will be denoted by $\mathbf{I_3}$, on the other end, then the system would be defined as follows:
+The interesting thing now is that we can test our model with more than 2 degrees of freedom and see the outcome. If we consider an additional shaft with stiffness $\mathbf{c_2}$ connected to the second rotating component on one end and to a third rotating component, whose inertia will be denoted by $\mathbf{I_3}$, on the other end, then the system would look like what is shown in [**Figure 9**](#fig:3_degree_of_freedom_rigid_motion) and would be defined as shown in the following code block.
+
+<figure id="fig:3_degree_of_freedom_rigid_motion">
+    <img src="08_torVib.png" alt="3 Degree of Freedom System: Rigid Motion">
+    <figcaption>Figure 9 - 3 Degree of Freedom System</figcaption>
+</figure>
 
 ```Python
 # Define parameters
@@ -1697,12 +1702,18 @@ fig.legend()
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 ```
 
-Keeping the initial conditions for the first two degrees of freedom the same and setting the ones for the third degree of freedom to null, the code block plot the graph shown in [**Figure 9**](#fig:3_degree_of_freedom_freeVibration_time_response_matrix).
+Keeping the initial conditions for the first two degrees of freedom the same and setting the ones for the third degree of freedom to null, we end up with the graph shown in [**Figure 10**](#fig:3_degree_of_freedom_freeVibration_time_response_matrix).
 
 <figure id="fig:3_degree_of_freedom_freeVibration_time_response_matrix">
-    <img src="08_torVib.png" alt="3 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form">
-    <figcaption>Figure 9 - 3 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form</figcaption>
+    <img src="09_torVib.png" alt="3 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form">
+    <figcaption>Figure 10 - 3 Degree of Freedom System: Free Vibration Time Response Solved in Matrix Form</figcaption>
 </figure>
+
+The key takeaway here is that beyond the first rigid body motion mode, every single mode is treated as if it were a **SDOF** torsional system. Once we perform the calculation for each mode, we can then use the mode shapes to revert back to physical coordinates and sum the contributions coming from all the modes. What is a mathematical tool that allows us to sum weighted terms? It's matrix multiplication! That's exactly what we did here with the latest version of our code. For every degree of freedom, we simply weighted the time response of each mode with that particular DOF's mode shape corresponding to that particular mode, and then we added all the contributions, all in one operation.
+
+Do you reckon we can do the same for forced vibrations?
+
+### On Forced Vibrations
 
 ---
 
