@@ -1,7 +1,7 @@
 
 ---
 title: "Torsional Vibrations - Modeling and Analysis (Part 2)"
-date: 2026-05-17T12:54:13+02:00
+date: 2026-09-27T20:00:00+02:00
 author: "Ragheed"
 excerpt: ""
 description: "This series covers the fundamentals of torsional vibrations, including the derivation of equations of motion and the use of Python for numerical analysis. The application is specific to gearbox testing bench setups."
@@ -2021,3 +2021,15 @@ This produces the plot shown in [**Figure 11**](#fig:3_degree_of_freedom_forcedV
 Try to play around with different load types and initial conditions and see what comes out.
 
 ## Conclusion
+
+If you've made it this far: Congratulations. This definitely isn't easy content to absorb and requires some heavy lifting from you, the reader. To sum up, we started with the free body diagrams of a 2DOF torsional system where rigid body motion in the form of rotation is permitted. From the free body diagrams, we were able formulate the equations of motion of both DOFs. At that point, we discovered that the equations are coupled; that is, the solution of one depends on the solution of the other.
+
+To decouple the equations, we switched from physical coordinates to modal coordinates. This resulted in 2 equations, corresponding to the 2 modes, each an equivalent to a 1DOF rotational system. We discovered that the first mode with frequency $\mathbf{0 [Hz]}$ actually corresponds to rigid body motion, while the second mode is equivalent to a SDOF torsional system. After obtaining the time response of the modal coordinates for each mode, we then used the mode shapes to revert back to the physcial coordinates. A question arised: is it sustainable to have to derive the equations of motion when the problem involves more degrees of freedom?
+
+To answer this question, we adopted the matrix representation of the system and used matrix operations to quickly calculate the natural frequencies and mode shapes of each mode. With that, we were able to calculate the general solution of the system much faster. We then implemented the solution of the forced MDOF torsional system by solving, for each mode, the SDOF system corresponding to it. For each mode, we had to calculate the solution for each external excitation and eventually add all contributions together to get the particular solution. Finally, we used the mode shapes to revert back to the physical coordinates.
+
+By adopting matrix representation and taking advantage of matrix operations, we did indeed simplify the process to obtain the natural frequencies and the mode shapes. However, our currentmodel still requires us to derive the equations of motion at least to assemble the inertia and stiffness matrices.
+
+Do you reckon there's a way to avoid that? Do you think we can look at a certain setup (or its representation) and find a way to code the assembly of the matrices right away? This will be the topic of the next part in this series.
+
+Till then, relax and remember to have fun :D
