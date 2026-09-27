@@ -5,7 +5,7 @@ date: 2026-09-27T20:00:00+02:00
 author: "Ragheed"
 excerpt: ""
 description: "This series covers the fundamentals of torsional vibrations, including the derivation of equations of motion and the use of Python for numerical analysis. The application is specific to gearbox testing bench setups."
-draft: true
+draft: false
 math: true
 toc: true
 categories: ["Mechanical Engineering", "Programming Tutorial"]
