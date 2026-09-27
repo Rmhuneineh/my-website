@@ -22,7 +22,7 @@ In [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/ "Part 
 
 Using ***Python***, we developed a mini-solver to simulate the response of the SDOF system under various load conditions. The solver calculates the time response analytically for polynomial or harmonic excitations with the possibility to perform the calculation numerically for arbitrary excitation inputs such as measured signals.
 
-The next step is to widen our perspective and apply the systematic approach on multiple degree of freedom (MDOF) torsional systems. In addition to the 2 studies mentioned earlier, we will have 2 more studies to be performed in between:
+The next step is to widen our perspective and apply the systematic approach on multiple degree of freedom (MDOF) torsional systems. In addition to the 2 studies mentioned earlier, we will perform 2 more studies in between:
 1. **Identification of Excitation Sources**: Beyond the main load source(s), further excitation sources present in typical test bench setups must be identified (i.e gears, variable frequency drives, etc.).
 2. **Campbell Diagram Analysis**: Identifying critical operating zones based on calculated natural frequencies and excitation sources.
 
@@ -45,7 +45,7 @@ Consider the system shown in [**Figure 1**](#fig:2_degree_of_freedom_rigid_motio
 
 When rotating under load, the intermediate shaft experiences torsional stress due to its finite stiffness. Similar to SDOF torsional systems, measurements documented in literature prove that 2-degree of freedom systems such as the one depicted indeed do contain a frequency component that persists regardless of the form the external load takes. Therefore, we'd need to find a way to calculate this ***natural frequency*** component to avoid resonance when attempting to excite the system.
 
-The free body diagrams of the two rotating bodies are shown in [**Figure 2**](#fig:2_degree_of_freedom_rigid_motion_fbd). It has to be noted that the restoring torque from the shaft will only be present when the shaft is twisted. Practically, this means that the restoring torque will be present only when the two rotating bodies are oscillating out of phase. As a result, the resoring torque is proportional to the absolute difference between the 2 angular displacements: $\bold{|\theta_1 - \theta_2|}$.
+The free body diagrams of the two rotating bodies are shown in [**Figure 2**](#fig:2_degree_of_freedom_rigid_motion_fbd). It has to be noted that the restoring torque from the shaft will only be present when the shaft is twisted. Practically, this means that the restoring torque will be present only when the two rotating bodies are oscillating out of phase. As a result, the restoring torque is proportional to the absolute difference between the 2 angular displacements: $\bold{|\theta_1 - \theta_2|}$.
 
 <figure id="fig:2_degree_of_freedom_rigid_motion_fbd">
     <img src="01_torVib.png" alt="2 Degree of Freedom System: Free Body Diagram">
@@ -56,11 +56,11 @@ The resulting set of equations of motion is:
 $$I_1 \cdot \ddot{\theta}\_1 + c \cdot (\theta_1 - \theta_2) = 0$$
 $$I_2 \cdot \ddot{\theta}\_2 + c \cdot (\theta_2 - \theta_1) = 0$$
 
-Rearranging the terms so as to serparate $\bold{\theta_1}$ from $\bold{\theta_2}$:
+Rearranging the terms so as to separate $\bold{\theta_1}$ from $\bold{\theta_2}$:
 $$I_1 \cdot \ddot{\theta}\_1 + c \cdot \theta_1 - c \cdot \theta_2 = 0$$
 $$I_2 \cdot \ddot{\theta}\_2 + c \cdot \theta_2 - c \cdot \theta_1 = 0$$
 
-This is a coupled system: the motion of each body directly influences the motion ofthe other through the terms $\bold{c \cdot \theta_2}$ and $\bold{c \cdot \theta_1}$. One natural instinct would be to  move those  coupling terms to the right-hand side and treat each equation as a SDOF forced vibration problem, as we did in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"). This, however, leads to an ${\infty}$ loop: to solve for $\bold{\theta_1}$ you need $\bold{\theta_2}$, and  to solve for $\bold{\theta_2}$ you need $\bold{\theta_1}$.
+This is a coupled system: the motion of each body directly influences the motion of the other through the terms $\bold{c \cdot \theta_2}$ and $\bold{c \cdot \theta_1}$. One natural instinct would be to  move those  coupling terms to the right-hand side and treat each equation as a SDOF forced vibration problem, as we did in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1"). This, however, leads to an ${\infty}$ loop: to solve for $\bold{\theta_1}$ you need $\bold{\theta_2}$, and  to solve for $\bold{\theta_2}$ you need $\bold{\theta_1}$.
 
 We therefore need a smarter approach. As in the SDOF case, we propose a harmonic solution for each degree of freedom:
 $$\theta_i(t) = A_i \cdot cos(\omega t) + B_i \cdot sin(\omega t)$$
@@ -103,7 +103,7 @@ The negative sign confirms that the two bodies always rotate in opposite directi
 For $\bold{\omega_{n,1} = 0}$:
 $$\Theta_2 = \Theta_1$$
 
-Both bodies move identically. Since the system is not fixed to any gournd, this can only correspond to rigid body rotation; the shaft connecting the two bodies does not deform at all.
+Both bodies move identically. Since the system is not fixed to any ground, this can only correspond to rigid body rotation; the shaft connecting the two bodies does not deform at all.
 
 These two expressions are in fact the **mode shapes** of the system. A mode shape describes the relative amplitude between the degrees of freedom when a given mode is active.
 
@@ -115,12 +115,12 @@ Choosing $\Theta_1$ as reference, the two mode shapes are:
 
 In the SDOF case, finding the natural frequency was essentially the finish line: we substituted it back into the proposed solution, applied the initial conditions, and obtained the response. Here, having found two natural frequencies, the situation is slightly more involved.
 
-The key observation is that, in general, the system will not vibrate exclusively in one mode or the other; in fact, it will rather exhibit both simultaneously, with the relative contribution of each mode determined by the initial conditions. The total response is therefore a superposition of both modal contributions.
+The key observation is that, in general, the system will not vibrate exclusively in one mode or the other; instead, it will rather exhibit both simultaneously, with the relative contribution of each mode determined by the initial conditions. The total response is therefore a superposition of both modal contributions.
 
-To see why, recall that a single free oscillator has one natural frequency and its general solution carries two contraints:
+To see why, recall that a single free oscillator has one natural frequency and its general solution carries two constraints:
 $$A \cdot cos(\omega t) + B \cdot sin(\omega t)$$
 
-These two contraints are fixed by the two initial conditions of the SDOF system. By the same logic, a system with two modes requires one such pair of constraints **per mode**, giving four constants in total, which is precisly the number needed to satisfy the four initial conditions of our 2 DOF system:
+These two contraints are fixed by the two initial conditions of the SDOF system. By the same logic, a system with two modes requires one such pair of constraints **per mode**, giving four constants in total, which is precisely the number needed to satisfy the four initial conditions of our 2 DOF system:
 1. $\bold{\theta_1(0)}$: initial angle of the first degree of freedom,
 2. $\bold{\theta_2(0)}$: initial angle of the second degree of freedom,
 3. $\bold{\dot{\theta}\_1(0)}$: initial angular velocity of the first degree of freedom, and
@@ -354,7 +354,7 @@ fig.text(0.06, 0.9, r"$\mathbf{\theta_1(0) = }$" + f"{theta_0[0]} [rad]" + "\n" 
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 ```
 
-This code block should result in the plot shown in [**Figure 3**](#fig:2_degree_of_freedom_freeVibration_time_response). You're free to experiment around with different sets of initial conditions. In my example, I experimented with a general case where both degrees of freedom have both, their initial angular positions and angular velocities, initialized to reasonable values. We can clearly see that both degrees of freedom oscillate out-of-phase. Moreover, we can also see the trend of rigid body motion, especially for ***DOF 2***, where a steady increase in the angular position can be seen along with the oscillation trend. This can also be noted by the fact that the angular velocity of ***DOF 2*** oscillates around an average different from 0. Please note that ***DOF 1*** experiences the same behaviour but the contribution of rigid body motion mode is lower compared to that of out-of-phase oscillation mode. 
+This code block should result in the plot shown in [**Figure 3**](#fig:2_degree_of_freedom_freeVibration_time_response). You're free to experiment around with different sets of initial conditions. In my example, I experimented with a general case where both degrees of freedom have both, their initial angular positions and angular velocities, initialized to reasonable values. We can clearly see that both degrees of freedom oscillate out-of-phase. Moreover, we can also see the trend of rigid body motion, especially for ***DOF 2***, where a steady increase in the angular position can be seen alongside the oscillation trend. This is also evident from the fact that the angular velocity of ***DOF 2*** oscillates around a mean different from 0. Please note that ***DOF 1*** experiences the same behaviour but the contribution of rigid body motion mode is lower compared to that of out-of-phase oscillation mode. 
 
 <figure id="fig:2_degree_of_freedom_freeVibration_time_response">
     <img src="02_torVib.png" alt="2 Degree of Freedom System: Free Vibration Time Response">
@@ -579,7 +579,7 @@ $$q_1(t) = A^{(1)}\_{1,G} + B^{(1)}\_{1,G} \cdot t - \frac{\phi_i^{(1)}}{I_{eq}^
 
 Note that for the harmonic excitation case, the terms don't vanish at $\bold(t=0)$. Therefore, calculating the constants for the general solution doesn't rely on the initial conditions only but also on the initial value of the excitation and its first derivative.
 
-This needs to be addressed **after** calculating the seond modal coordinate and **after** switching back to the physical coordinates where the particular solution (either from the first mode, the second mode, or both) can have initial values. These need to be addressed when calculating the constants of the general solution. The derivation is relatively easy and the final result is a modification in vector $\mathbf{b}$ of our matrix form:
+This must to be addressed **after** calculating the seond modal coordinate and **after** switching back to the physical coordinates where the particular solution (either from the first mode, the second mode, or both) can have initial values. These need to be addressed when calculating the constants of the general solution. The derivation is relatively easy and the final result is a modification in vector $\mathbf{b}$ of our matrix form:
 
 $$
 b= 
