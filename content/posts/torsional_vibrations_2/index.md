@@ -2033,3 +2033,8 @@ By adopting matrix representation and taking advantage of matrix operations, we 
 Do you reckon there's a way to avoid that? Do you think we can look at a certain setup (or its representation) and find a way to code the assembly of the matrices right away? This will be the topic of the next part in this series.
 
 Till then, relax and remember to have fun :D
+
+## References
+- Mark A. Corbo & Stanley B. Malansoki, 1996, [**"Practical Design Against Torsional Vibration"**](https://dyrobes.com/paper/practical-design-against-torsional-vibration/ "Practical Design Against Torsional Vibration")
+- Ewins, D.J., "Modal Testing: Theory, Practice and Application (Mechanical Engineering Research Studies: Engineering Dynamics Series)"
+- [**Jupyter Notebook With Code**](https://github.com/Rmhuneineh/my-website/blob/main/content/posts/torsional_vibrations_2/01_torVib.ipynb "Jupyter Notebook")
