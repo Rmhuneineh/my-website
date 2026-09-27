@@ -1531,6 +1531,8 @@ $$\ddot{q}\_{2,P} + \omega_2^2 \cdot q\_{2,P} = f_2(t)$$
 
 $$ \text{where: } f_r(t) = \psi_1^{(2)} \cdot \tau_1(t) + \psi_2^{(2)} \cdot \tau_2(t)$$
 
+Practically, this means that for every mode other than the rigid body mode we're solving the SDOF torsional system with an equivalent inertia equal to $\mathbf{1 [kg.m^2]}$ and an equivalent stiffness equal to $\mathbf{\omega_{n,r}^2}$. The only difference is that the external load in this case is a summation of loads weighted according to the mode shapes. In other words, it's like this SDOF is subjected to many different loads, possibly of different types, all at once!
+
 For the general solution, we know that $\mathbf{f_r(t)=0}$ for any mode $\mathbf{r}$. Moreover, for the rigid body motion mode, the natural frequency is null and the response is simply a first-order linear equation in time. Thus, I will take the chance to implement the general solution in modal coordinates rather than referring to our 8x8 linear system that we developed earlier since that solution doesn't scale up in a sustainable manner.
 
 ```Python
@@ -1556,6 +1558,7 @@ For the general solution, we know that $\mathbf{f_r(t)=0}$ for any mode $\mathbf
         # Time array
         self.t = np.linspace(0, time_span, 1000)
 
+        # General Solution
         # Initialize modal coordinates vs time all to null
         qG_t = np.zeros((n, len(self.t)))
         qG_t_dot = np.zeros((n, len(self.t)))
@@ -1715,72 +1718,306 @@ Do you reckon we can do the same for forced vibrations?
 
 ### On Forced Vibrations
 
----
+In the previous sections, we came to the realization that dealing with MDOF systems can be reduced to a set of SDOF systems that we called **modes**. Consequently, we calculated the time response of each mode to obtain the modal coordinates solution, and then we calculated the time response of each DOF via the mode shapes to obtain the physical coordinates solution. The rigid body motion is a particular mode whereby the solution is simply a linear function in time.
+
+Hence, all we need to do at this point is implement a loop over the modes and, for each mode, loop over the set of modal excitations to calculate the corresponding response. After that, we sum the contributions of all modal excitations corresponding to that particular mode to obtain the time response in modal coordinates for each mode. Eventually, we use matrix multiplication via the mode shapes matrix to calculate the time resopnse correspoinding to the physical coordinates.
+
+An important note to keep in mind is that we're using the **mass-normalized mode shapes**. What this means is that when we calculate the modal forces, we're essentially saying that our system is composed of a system with an equivalent inertia equal to $\mathbf{1 [kg.m^2]}$ and an equivalent stiffness equal to $\mathbf{\omega_n^2}$. Therefore, for the rigid body mode, we will set the acceleration of the modal coordinate directly equal to the modal excitation and then integrate it twice. While for other modes, we will use our SDOF class to define an instance with the equivalent inertia and stiffness already mentioned.
+
+Our ```simulate_time_response()``` function, in its most complex form, is presented in the code block below.
+
+```Python
+# ... (previous code remains unchanged)
+
+ # Method to simulate the time response of the system
+    def simulate_time_response(self, initial_angle=None, initial_velocity=None, time_span=10, load_type=None, tau_ext=None):
+        # Get the number of degrees of freedom
+        n = self.M.shape[0]
+
+        # If no inital angle has been given, assume it's all null
+        if initial_angle is None:
+            initial_angle = np.zeros(n)
+
+        # If no inital velocity has been given, assume it's all null
+        if initial_velocity is None:
+            initial_velocity = np.zeros(n)
+
+        # Particular solution
+        if load_type is None:
+            t_common = np.linspace(0, time_span, 1000)
+            qP_t = [np.zeros_like(t_common) for _ in range(n)]
+            qP_t_dot = [np.zeros_like(t_common) for _ in range(n)]
+            qP_t_ddot = [np.zeros_like(t_common) for _ in range(n)]
+        elif np.any(load_type == "measurement") and not np.all(load_type == "measurement"):
+            raise ValueError("Mixing 'measurement' with other load types is not supported. All degrees of freedom must use 'measurement' if any of them does.")
+        else:
+            # Initialize modal coordinates vs time to None arrays of size 'n'
+            qP_t = [None] * n
+            qP_t_dot = [None] * n
+            qP_t_ddot = [None] * n
+
+            # Time array shared across analytical modes
+            t_common = None
+
+            # Loop over modes
+            for r in range(n):
+                # Loop over loads
+                for i, lt in enumerate(load_type):
+                    # Define scaling factor as mode shape on DOF 'i' for mode 'r'
+                    psi_ir = self.psi[i, r]
+                    # Check load type
+                    if lt == "measurement":
+                        # Time array
+                        t = tau_ext[i]['time'] if t_common is None else t_common
+                        t_common = t
+                        # Modal excitation
+                        tau_i = psi_ir * tau_ext[i]['load']
+
+                        if qP_t[r] is None:
+                            qP_t[r] = np.zeros_like(t)
+                            qP_t_dot[r] = np.zeros_like(t)
+                            qP_t_ddot[r] = np.zeros_like(t)
+
+                        # Check if mode is rigid
+                        if np.isclose(self.omega_n[r], 0, atol=1e-6):
+                            # Rigid body mode : direct double integration
+                            qP_ddot = tau_i
+                            qP_dot = cumulative_trapezoid(qP_ddot, t, initial=0)
+                            qP = cumulative_trapezoid(qP_dot, t, initial=0)
+                            qP_t[r] += qP
+                            qP_t_dot[r] += qP_dot
+                            qP_t_ddot[r] += qP_ddot
+                        else:
+                            # Elastic mode: reuse SDOFTorsionalSystem with unit modal mass
+                            sdof = SDOFTorsionalSystem(inertia=1, stiffness=self.omega_n[r]**2)
+                            sdof.simulate_time_response(load_type=lt, tau_ext={'time': t, 'load': tau_i})
+                            qP_t[r] += sdof.theta_t
+                            qP_t_dot[r] += sdof.theta_t_dot
+                            qP_t_ddot[r] += sdof.theta_t_ddot
+                    elif lt == "poly":
+                        # Time array
+                        t = np.linspace(0, time_span, 1000) if t_common is None else t_common
+                        t_common = t
+                        # Modal excitation
+                        coeffs = psi_ir * tau_ext[i]
+
+                        if qP_t[r] is None:
+                            qP_t[r] = np.zeros_like(t)
+                            qP_t_dot[r] = np.zeros_like(t)
+                            qP_t_ddot[r] = np.zeros_like(t)
+
+                        # Check if mode is rigid
+                        if np.isclose(self.omega_n[r], 0, atol=1e-6):
+                            # Rigid body mode
+                            n_ord = len(coeffs) - 1
+                            for k, coeff in enumerate(coeffs):
+                                power = n_ord - k
+                                qP_t[r] += coeff * t **(power + 2) / ((power + 2) * (power + 1))
+                                qP_t_dot[r] += coeff * t ** (power + 1) / (power + 1)
+                                qP_t_ddot[r] += coeff * t ** power
+                        else:
+                            # Elastic mode: resuse SDOFTorsionalSystem with unit modal mass
+                            sdof = SDOFTorsionalSystem(inertia=1, stiffness=self.omega_n[r]**2)
+                            sdof.simulate_time_response(load_type=lt, tau_ext=coeffs, time_span=time_span)
+                            qP_t[r] += sdof.theta_t
+                            qP_t_dot[r] += sdof.theta_t_dot
+                            qP_t_ddot[r] += sdof.theta_t_ddot
+                    elif lt == "harmonic":
+                        # Time array
+                        t = np.linspace(0, time_span, 1000) if t_common is None else t_common
+                        t_common = t
+
+                        if qP_t[r] is None:
+                            qP_t[r] = np.zeros_like(t)
+                            qP_t_dot[r] = np.zeros_like(t)
+                            qP_t_ddot[r] = np.zeros_like(t)
+
+                        # Initialiye modal excitation as an empty dictionary
+                        modal_excitation = {}
+                        # Check for sinusoidal load and scale its amplitudes
+                        if 'sin' in tau_ext[i]:
+                            modal_excitation['sin'] = {
+                                'amplitude': psi_ir * tau_ext[i]['sin']['amplitude'],
+                                'frequency': tau_ext[i]['sin']['frequency']
+                                }
+                        # Check for cosinusoidal load and scale its amplitudes
+                        if 'cos' in tau_ext[i]:
+                            modal_excitation['cos'] = {
+                                'amplitude': psi_ir * tau_ext[i]['cos']['amplitude'],
+                                'frequency': tau_ext[i]['cos']['frequency']
+                                }
+
+                        # Check if mode is rigid
+                        if np.isclose(self.omega_n[r], 0, atol=1e-6):
+                            # Rigid body mode
+                            if 'sin' in modal_excitation:
+                                A_s = modal_excitation['sin']['amplitude']
+                                omega_s = modal_excitation['sin']['frequency'] * 2 * np.pi
+                                for A_j, w_j in zip(A_s, omega_s):
+                                    qP_t[r] += -A_j / w_j**2 * np.sin(w_j * t)
+                                    qP_t_dot[r] += - A_j / w_j * np.cos(w_j * t)
+                                    qP_t_ddot[r] += A_j * np.sin(w_j * t)
+                            if 'cos' in modal_excitation:
+                                B_c = modal_excitation['cos']['amplitude']
+                                omega_c = modal_excitation['cos']['frequency'] * 2 * np.pi
+                                for B_j, w_j in zip(B_c, omega_c):
+                                    qP_t[r] += -B_j / w_j**2 * np.cos(w_j * t)
+                                    qP_t_dot[r] += B_j / w_j * np.sin(w_j * t)
+                                    qP_t_ddot[r] += B_j * np.cos(w_j * t)
+                        else:
+                            # Elastic mode: resuse SDOFTorsionalSystem with unit modal mass
+                            sdof = SDOFTorsionalSystem(inertia=1, stiffness=self.omega_n[r]**2)
+                            sdof.simulate_time_response(load_type=lt, tau_ext=modal_excitation, time_span=time_span)
+                            qP_t[r] += sdof.theta_t
+                            qP_t_dot[r] += sdof.theta_t_dot
+                            qP_t_ddot[r] += sdof.theta_t_ddot
+                    else:
+                        raise ValueError("Unsuported load type. Please specify 'poly', 'harmonic', or 'measurement'.")
+        # Time array
+        self.t = t_common
+
+        # Recover physical coordinates
+        self.theta_P = self.psi @ qP_t
+        self.theta_P_dot = self.psi @ qP_t_dot
+        self.theta_P_ddot = self.psi @ qP_t_ddot
+
+        # Project initial conditions onto modal coordinates
+        q_0 = self.psi.T @ self.M @ (initial_angle - self.theta_P[:, 0])
+        q_0_dot = self.psi.T @ self.M @ (initial_velocity - self.theta_P_dot[:, 0])
+
+        # General Solution
+        # Initialize modal coordinates vs time all to null
+        qG_t = np.zeros((n, len(self.t)))
+        qG_t_dot = np.zeros((n, len(self.t)))
+        qG_t_ddot = np.zeros((n, len(self.t)))
+
+        # Calculate modal coordinates vs time
+        for r in range(n):
+            if np.isclose(self.omega_n[r], 0, atol=1e-6):
+                # Rigid body motion: linear in time
+                qG_t[r] = q_0[r] + q_0_dot[r] * self.t
+                qG_t_dot[r] = q_0_dot[r]
+                # qG_t_ddot remains zeros!
+            else:
+                # Elastic mode: harmonic
+                A_r = q_0[r]
+                B_r = q_0_dot[r] / self.omega_n[r]
+                qG_t[r] = A_r * np.cos(self.omega_n[r] * self.t) + B_r * np.sin(self.omega_n[r] * self.t)
+                qG_t_dot[r] = (-A_r * np.sin(self.omega_n[r] * self.t) + B_r * np.cos(self.omega_n[r] * self.t)) * self.omega_n[r]
+                qG_t_ddot[r] = -(A_r * np.cos(self.omega_n[r] * self.t) + B_r * np.sin(self.omega_n[r] * self.t)) * self.omega_n[r]**2
+
+        # Recover physical coordinates
+        self.theta_G = self.psi @ qG_t
+        self.theta_G_dot = self.psi @ qG_t_dot
+        self.theta_G_ddot = self.psi @ qG_t_ddot
+
+        # Complete Solution
+        self.theta_t = self.theta_G + self.theta_P
+        self.theta_t_dot = self.theta_G_dot + self.theta_P_dot
+        self.theta_t_ddot = self.theta_G_ddot + self.theta_P_ddot
+```
+
+We can then use this latest version to simulate a 3DOF system subjected to different polynomial excitations on its 3 different DOF. We will also impose an initial velocity on DOF2 equal to $\mathbf{-1 [rad/s]}$ and an initial angle on DOF3 equal to $\mathbf{0.6 [rad]}$.
+
+```Python
+# Define parameters
+I_1 = 0.1 # [kg.m^2]
+I_2 = 5 # [kg.m^2]
+I_3 = 1 # [kg.m^2]
+c_1 = 25 # [N.m/rad]
+c_2 = 35 # [N.m/rad]
+
+# Define inertia and stiffness matrices
+I_mat = np.diag([I_1, I_2, I_3])
+c_mat = np.array([[c_1, -c_1, 0], [-c_1, c_1 + c_2, -c_2], [0, -c_2, c_2]])
 
 
+# Define an instance of the model
+S = MDOFTorsionalSystem(I_mat=I_mat, c_mat=c_mat)
 
-## Appendix
+# Define External Excitations
+tau_1 = np.array([1.1, 2], dtype=np.float16) # 1.1*t + 2
+tau_2 = np.array([-1, -2.2], dtype=np.float16) # -t - 2.2
+tau_3 = np.array([0.5, -0.8], dtype=np.float16) # 0.5*t - 0.8
+# Calculate solution
+S.simulate_time_response(initial_angle=np.array([0, 0, 0.6]), initial_velocity=np.array([0, -1, 0]), load_type=np.array(['poly', 'poly', 'poly']), tau_ext=[tau_1, tau_2, tau_3])
 
-### 2 Degrees of Freedom: No Rigid Motion
+# Plotting the time response
+fig, axes = plt.subplots(4, 1, figsize=(15, 10))
+fig.suptitle('Time Response of 3DOF Torsional System', fontsize=16)
+# Angular Displacement vs Time
+ax2 = axes[0].twinx()
+axes[0].plot(S.t, S.theta_t[0], label='DOF 1')
+ax2.plot(S.t, S.theta_t[1], label='DOF 2', color='#ff7f0e')
+ax2.plot(S.t, S.theta_t[2], label='DOF 3', color="#ff0ea3")
+axes[0].set_xlabel('Time [s]')
+axes[0].set_ylabel('Angular Displacement 1 [rad]')
+ax2.set_ylabel('Angular Displacement 2&3 [rad]')
+y1_min, y1_max = axes[0].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[0].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[0].set_title('Angular Displacement vs Time')
+axes[0].grid(True)
 
-Take 2 single degree of freedom systems, mirror them with respect to each other, and connect the two rotating inertias with a third shaft. You get a simple 2 degree of freedom torsional system, the schematic of which can be seen in [**Figure 98**](#fig:2_degree_of_freedom_no_rigid_motion)
+ax2 = axes[1].twinx()
+axes[1].plot(S.t, S.theta_t_dot[0])
+ax2.plot(S.t, S.theta_t_dot[1], color='#ff7f0e')
+ax2.plot(S.t, S.theta_t_dot[2], color="#ff0ea3")
+axes[1].set_xlabel('Time [s]')
+axes[1].set_ylabel('Angular Velocity 1 [rad/s]')
+ax2.set_ylabel('Angular Velocity 2&3 [rad/s]')
+y1_min, y1_max = axes[1].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[1].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[1].set_title('Angular Velocity vs Time')
+axes[1].grid(True)
 
-<figure id="fig:2_degree_of_freedom_no_rigid_motion">
-    <img src="98_torVib.png" alt="2 Degree of Freedom System: No Rigid Motion">
-    <figcaption>Figure 98 - 2 Degree of Freedom System: No Rigid Motion</figcaption>
+
+ax2 = axes[2].twinx()
+axes[2].plot(S.t, S.theta_t_ddot[0])
+ax2.plot(S.t, S.theta_t_ddot[1], color='#ff7f0e')
+ax2.plot(S.t, S.theta_t_ddot[2], color="#ff0ea3")
+axes[2].set_xlabel('Time [s]')
+axes[2].set_ylabel('Angular Acceleration 1 [rad/s^2]')
+ax2.set_ylabel('Angular Acceleration 2&3 [rad/s^2]')
+y1_min, y1_max = axes[2].get_ylim()
+y2_min, y2_max = ax2.get_ylim()
+ymin = min(y1_min, y2_min)
+ymax = max(y1_max, y2_max)
+axes[2].set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+axes[2].set_title('Angular Acceleration vs Time')
+axes[2].grid(True)
+
+# Plot Load
+for i, load in enumerate([tau_1, tau_2, tau_3]):
+    load_t = load[0]*S.t + load[1]
+    if i == 2:
+        axes[3].plot(S.t, load_t, color="#ff0ea3")
+    else:
+        axes[3].plot(S.t, load_t)
+axes[3].set_xlabel('Time [s]')
+axes[3].set_ylabel('Load [N.m]')
+axes[3].set_title('Load vs Time')
+axes[3].grid(True)
+
+fig.legend()
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+```
+
+This produces the plot shown in [**Figure 11**](#fig:3_degree_of_freedom_forcedVibration_time_response_matrix).
+
+<figure id="fig:3_degree_of_freedom_forcedVibration_time_response_matrix">
+    <img src="10_torVib.png" alt="3 Degree of Freedom System: Forced Vibration Time Response Solved in Matrix Form">
+    <figcaption>Figure 11 - 3 Degree of Freedom System: Forced Vibration Time Response Solved in Matrix Form</figcaption>
 </figure>
 
-Each rotating body has two shafts connected to it, one on either side. When the 2 bodies are oscillating, the two shafts connected to the wall are guaranteed to undergo twisting and thus, procude a restoring torque. The intermediate shaft with torsional stiffness $\bold{c_2}$ however is twisting only if the two rotating inertias are oscillating out of phase. This means that the restoring torque produced by the intermediate shaft is proportional to the difference between the angular displacements of the two rotating bodies: $\bold{|\theta_1 - \theta_2|}$. Remembering that the torque produced by the shaft's torsional stiffness is a restoring torque that opposes the angular displacement from its equilibrium position, the freebody diagrams of the two rotating bodies are then represented as shown in [**Figure 99**](#fig:2_degree_of_freedom_no_rigid_motion_fbd).
+Try to play around with different load types and initial conditions and see what comes out.
 
-<figure id="fig:2_degree_of_freedom_no_rigid_motion_fbd">
-    <img src="99_torVib.png" alt="2 Degree of Freedom System: No Rigid Motion - Free Body Diagram">
-    <figcaption>Figure 99 - 2 Degree of Freedom System: No Rigid Motion - Free Body Diagram</figcaption>
-</figure>
-
-The resulting set of equations of motion is:
-
-$$I_1 \cdot \ddot{\theta}\_1 + c_1 \cdot \theta_1 + c_2 \cdot (\theta_1 - \theta_2) = 0$$
-
-$$I_2 \cdot \ddot{\theta}\_2 + c_3 \cdot \theta_2 + c_2 \cdot (\theta_2 - \theta_1) = 0$$
-
-Rearranging the terms to separate $\bold{\theta_1}$ from $\bold{\theta_2}$, we get:
-
-$$I_1 \cdot \ddot{\theta}\_1 + (c_1 + c_2) \cdot \theta_1 = c_2 \cdot \theta_2$$
-
-$$I_2 \cdot \ddot{\theta}\_2 + (c_2 + c_3) \cdot \theta_2 = c_2 \cdot \theta_1$$
-
-This set of second order differential equations represents a coupled system, not to be mistaken for the forced vibrations discussed in [**Part 1**](https://ragheedhuneineh.com/posts/torsional_vibrations_1/#forced-vibration-analysis-theory "Part 1") of this series. The two equations are coupled together through the terms $\bold{c_2 \cdot \theta_2}$ and $\bold{c_2 \cdot \theta_1}$. This means that the motion of one body affects the motion of the other body, and vice versa. One could think of solving one of the equations considering it as a SDOF system undergoing forced vibrations, where the forcing term is the motion of the other body. However, this approach does not lead to a closed-form solution. Think of it as attempting to find the particular solution of one of the responses using the particular solution of the other as the external torque, but to get the particular solution of the other you'd need the particular solution of the first as an external torque: $\bold{\infty}$ **loop**.
-
-Thus, for an attempt to solve the system of equations, we'd need to think of 2 functions, one for each response, that would satisfy the conditions presented. Reckon trigonometry or complex exponentials would answer our call this time as well? Opting for the trigonometric form, a solution would look like this:
-$$\theta(t) = A \cdot sin(\omega t) + B \cdot cos(\omega t)$$
-
-The second derivative is simply:
-$$\ddot{\theta}(t) = -A \cdot \omega^2 \cdot sin(\omega t) - B \cdot \omega^2 \cdot cos(\omega t)$$
-
-In essence, the second derivative is proportional to the solution itself:
-$$\ddot{\theta}(t) = - \omega^2 \cdot \theta(t)$$
-
-For simplicity, denote: $\bold{\Theta = \theta(t)}$
-
-Substituting this in the set of equations derived earlier, we get:
-$$-I_1 \cdot \omega^2 \cdot \Theta_1 + (c_1 + c_2) \cdot \Theta_1 = c_2 \cdot \Theta_2$$
-
-$$-I_2 \cdot \omega^2 \cdot \Theta_2 + (c_2 + c_3) \cdot \Theta_2 = c_2 \cdot \Theta_1$$
-
-From the first equation, we get:
-$$\Theta2 = \frac{c_1 + c_2 - I_1 \cdot \omega^2}{c_2} \cdot \Theta_1 $$
-
-
-$$\theta(t) = A^{(1)}_1 \cdot cos(\omega_{n,1}t) + A^{(2)}_1 \cdot cos(\omega_{n,2}t) +  B^{(1)}_1 \cdot sin(\omega_{n,1}t) + B^{(2)}_1 \cdot sin(\omega_{n,2}t)$$
-
-$$\theta(t) = A^{(1)}_1 + A^{(2)}_1 \cdot cos \left(\sqrt{\frac{c \cdot (I_1 +I_2)}{I_1 \cdot I_2}} \cdot t \right) + B^{(2)}_1 \cdot sin \left(\sqrt{\frac{c \cdot (I_1 +I_2)}{I_1 \cdot I_2}} \cdot t \right)$$
-
-
-$$
-\begin{bmatrix}
-I_1 & 0 \\\
-0 & I_2
-\end{bmatrix}
-$$
-
----
+## Conclusion
